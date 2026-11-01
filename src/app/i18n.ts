@@ -2,8 +2,10 @@ import { useStore } from '../stores/store';
 import { uiStore, type Lang } from '../stores/ui-store';
 import type { ImportIssueCode } from '../engines/svg-parser/report';
 import type { ValidationCode } from '../engines/toolpath-engine/validate';
+import { shopEn, shopKm } from './i18n-shop';
 
 const en = {
+  ...shopEn,
   'app.name': 'Rieb Snor CNC',
   'app.tagline': 'Foam nesting and Mach3 toolpaths',
   'nav.new': 'New', 'nav.open': 'Open', 'nav.save': 'Save', 'nav.undo': 'Undo', 'nav.redo': 'Redo',
@@ -117,6 +119,7 @@ const en = {
 export type Key = keyof typeof en;
 
 const km: Record<Key, string> = {
+  ...shopKm,
   'app.name': 'រៀបស្នោ CNC',
   'app.tagline': 'រៀបស្នោ និងបង្កើតផ្លូវកាត់សម្រាប់ Mach3',
   'nav.new': 'ថ្មី', 'nav.open': 'បើក', 'nav.save': 'រក្សាទុក', 'nav.undo': 'ថយក្រោយ', 'nav.redo': 'ទៅមុខវិញ',

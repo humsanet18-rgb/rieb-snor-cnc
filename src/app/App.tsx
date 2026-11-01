@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { EditorPanel } from '../features/editor/EditorPanel';
 import { PropertiesPanel } from '../features/geometry/PropertiesPanel';
+import { ShopScreen } from '../features/shop/ShopScreen';
 import { partOf, rotatePiece, updatePiece } from '../features/nesting/model';
 import { SheetCanvas } from '../features/preview/SheetCanvas';
 import { activeLayout, activeProfile, projectStore, redo, setLayout, undo } from '../stores/project-store';
@@ -58,11 +59,13 @@ export function App() {
   return (
     <div className="app" data-testid="app">
       <TopBar />
-      <div className="workspace">
-        {screen === 'editor' ? <EditorPanel /> : <Workflow />}
-        <SheetCanvas />
-        <PropertiesPanel />
-      </div>
+      {screen === 'shop' ? <ShopScreen /> : (
+        <div className="workspace">
+          {screen === 'editor' ? <EditorPanel /> : <Workflow />}
+          <SheetCanvas />
+          <PropertiesPanel />
+        </div>
+      )}
       <Dialogs />
       {toastState && <div key={toastState.id} className={'toast' + (toastState.bad ? ' bad' : '')} role="alert" data-testid="toast">{toastState.text}</div>}
     </div>

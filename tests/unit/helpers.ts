@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { buildParts } from '../../src/engines/geometry-engine/parts';
@@ -16,6 +16,12 @@ export const readSample = (name: string) => readFileSync(resolve(samplesDir, nam
 export const privateFile = (name: string) => {
   const p = fixture('private/' + name);
   return existsSync(p) ? readFileSync(p, 'utf8') : null;
+};
+
+/** Names of the customer jobs on this computer, so the public tests never spell them out. */
+export const privateJobs = () => {
+  const dir = fixture('private');
+  return existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.svg')).map(f => f.slice(0, -4)).sort() : [];
 };
 
 export const svgDoc = (body: string, attrs = 'width="100mm" height="100mm" viewBox="0 0 100 100"') =>

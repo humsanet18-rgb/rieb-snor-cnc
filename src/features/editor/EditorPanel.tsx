@@ -27,7 +27,7 @@ function GCodeList({ lines, current, pick }: { lines: string[]; current: number;
   }, [current]);
   const first = Math.max(0, Math.floor(top / ROW) - 4), shown = lines.slice(first, first + 32);
   return (
-    <div className="gcode" ref={box} data-testid="gcode" aria-label={t('editor.gcode')} onScroll={e => setTop(e.currentTarget.scrollTop)}>
+    <div className="gcode" ref={box} role="group" data-testid="gcode" aria-label={t('editor.gcode')} onScroll={e => setTop(e.currentTarget.scrollTop)}>
       <div style={{ height: lines.length * ROW }}>
         {shown.map((text, k) => {
           const line = first + k;

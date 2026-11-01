@@ -15,6 +15,8 @@ const PATHS = {
   layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
   left: 'M15 5l-7 7 7 7',
   right: 'M9 5l7 7-7 7',
+  up: 'M5 15l7-7 7 7',
+  down: 'M5 9l7 7 7-7',
   play: 'M7 4l13 8-13 8z',
   pause: 'M7 4h4v16H7zM14 4h4v16h-4z',
   rewind: 'M5 5v14M19 5L9 12l10 7z',

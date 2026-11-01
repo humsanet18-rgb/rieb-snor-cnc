@@ -8,11 +8,11 @@ import type { Polygon } from '../../types/geometry';
 import type { Layout, SheetLayout } from '../../types/project';
 import { layoutStats, sheetItems } from '../nesting/model';
 
-const PAGE_W = 1240, PAGE_H = 1754, PAD = 90;
+export const PAGE_W = 1240, PAGE_H = 1754, PAD = 90;
 const FONT = 'Arial, Battambang, "Khmer UI", "Khmer OS", sans-serif';
-const INK = '#23211d', MUTED = '#6d675c', LINE = '#c9c2b4';
+export const INK = '#23211d', MUTED = '#6d675c', LINE = '#c9c2b4';
 
-function newPage(): CanvasRenderingContext2D {
+export function newPage(): CanvasRenderingContext2D {
   const c = document.createElement('canvas');
   c.width = PAGE_W; c.height = PAGE_H;
   const g = c.getContext('2d');
@@ -22,7 +22,7 @@ function newPage(): CanvasRenderingContext2D {
   return g;
 }
 
-function text(g: CanvasRenderingContext2D, s: string, x: number, y: number, size: number, color = INK, bold = false) {
+export function text(g: CanvasRenderingContext2D, s: string, x: number, y: number, size: number, color = INK, bold = false) {
   g.font = `${bold ? 700 : 400} ${size}px ${FONT}`;
   g.fillStyle = color;
   g.fillText(s, x, y);
@@ -72,7 +72,12 @@ function drawSheet(g: CanvasRenderingContext2D, sheet: SheetLayout, layout: Layo
   return height;
 }
 
-const toJpeg = (g: CanvasRenderingContext2D): Promise<PdfPage> => new Promise((resolve, reject) => {
+export async function loadPdfFonts(): Promise<void> {
+  await document.fonts.load(`400 24px Battambang`, 'ក').catch(() => undefined);
+  await document.fonts.load(`700 24px Battambang`, 'ក').catch(() => undefined);
+}
+
+export const toJpeg = (g: CanvasRenderingContext2D): Promise<PdfPage> => new Promise((resolve, reject) => {
   g.canvas.toBlob(async blob => {
     if (!blob) { reject(new Error('jpeg')); return; }
     resolve({ jpeg: new Uint8Array(await blob.arrayBuffer()), pixelW: PAGE_W, pixelH: PAGE_H });
@@ -82,8 +87,7 @@ const toJpeg = (g: CanvasRenderingContext2D): Promise<PdfPage> => new Promise((r
 export async function makeCuttingReport(issues: ValidationIssue[]): Promise<void> {
   const state = projectStore.get(), { project } = state, layout = activeLayout(project), paths = uiStore.get().toolpaths;
   if (!layout || !paths) return;
-  await document.fonts.load(`400 24px Battambang`, 'ក').catch(() => undefined);
-  await document.fonts.load(`700 24px Battambang`, 'ក').catch(() => undefined);
+  await loadPdfFonts();
   const lang = uiStore.get().lang, stats = layoutStats(layout, project.designs), profile = activeProfile(state);
   const cut = paths.sheets.reduce((s, x) => s + x.length, 0);
   const pages: CanvasRenderingContext2D[] = [];

@@ -2,6 +2,21 @@
 
 The app is a static site. There is no server, database or environment variable. Everything runs in the visitor's browser, and files are never uploaded.
 
+A push to `main` updates both live sites, so test before pushing.
+
+| Site | Address | Notes |
+| --- | --- | --- |
+| Vercel (recommended for daily use) | https://rieb-snor-cnc.vercel.app/ | Builds from GitHub and sends security headers |
+| GitHub Pages | https://humsanet18-rgb.github.io/rieb-snor-cnc/ | Built by `.github/workflows/deploy.yml`. No security headers |
+
+Each address keeps its own records in the browser. Use one, or move records with a backup file.
+
+## Rollback
+
+Open the project in Vercel, go to Deployments, and promote the previous deployment. That needs the owner's sign-in. For both sites, `git revert` the bad commit and push it to `main`.
+
+Shop records and projects stay in the browser, so a rollback does not touch them. An older build refuses a backup file of a newer version, which keeps it safe.
+
 ## Build
 
 ```bash
@@ -24,7 +39,7 @@ Build command `npm run build`, output directory `dist`. Both read `public/_heade
 
 ### Vercel
 
-`vercel.json` already sets the build command, output directory and headers.
+`vercel.json` already sets the build command, output directory and headers. No environment variables are needed.
 
 ### GitHub Pages
 
@@ -49,7 +64,7 @@ Serve `dist/` as static files and add the headers below. `.webmanifest` should b
 
 ## Updates
 
-Each build produces hashed asset names and a new service worker version. Visitors get the new version on their next page load after the worker installs, and old caches are deleted. Project files have a version number; `parseProjectFile` refuses versions newer than the app, so raise `FILE_VERSION` and add a migration when the format changes.
+Each build produces hashed asset names and a new service worker version. Visitors get the new version on their next page load after the worker installs, and old caches are deleted. Shop records are in their own database, `rieb-snor-shop`, so a project format change cannot touch them. Project files have a version number; `parseProjectFile` refuses versions newer than the app, so raise `FILE_VERSION` and add a migration when the format changes.
 
 ## Before going public
 
@@ -61,4 +76,4 @@ Each build produces hashed asset names and a new service worker version. Visitor
 
 ## Cloud features
 
-None exist. Sync, accounts and sharing would be a later project and would need their own security review.
+None exist. Sync, accounts, roles and sharing would be a later project and would need their own security review. Do not add a browser-only login in the meantime, because it would protect nothing.

@@ -5,28 +5,28 @@ Last full run: 2026-11-01, Windows 11, Node 24.13.
 | Suite | Command | Result |
 | --- | --- | --- |
 | Type check (strict) | `npm run build` | No errors |
-| Unit and integration | `npm test` | 162 passed, 8 files, about 80 s |
-| Browser, Chromium | `npm run test:e2e` | 15 passed |
-| Browser, WebKit (Safari engine) | `npm run test:e2e` | 15 passed |
+| Unit and integration | `npm test` | 195 passed, 9 files, about 80 s |
+| Browser, Chromium | `npm run test:e2e` | 31 passed |
+| Browser, WebKit (Safari engine) | `npm run test:e2e` | 31 passed |
 | Browser, Firefox | `npm run test:e2e:firefox` | **Not run.** Windows blocked the test browser from starting |
 | Real Mach3 or machine | none | **Not run** |
 
-Browser tests run against the production build, with the Content Security Policy and service worker active. The main flow also fails on any console error.
+Browser tests run against the production build, with the Content Security Policy and service worker active. The main flows also fail on any console error. [TEST_RESULTS.md](TEST_RESULTS.md) lists every failure seen, including one full run that did not repeat.
 
 ## Regression against the original engine
 
-`tests/integration/regression.test.ts` runs the unchanged original engine and the new one side by side on the four real Ba+1 jobs:
+`tests/integration/regression.test.ts` runs the unchanged original engine and the new one side by side on four real customer jobs:
 
 - Parser output and parts are equal.
 - TAP output is byte-identical, with no clamp zones and with two.
 - SVG output is byte-identical.
 - The contours match the FCNC-made TAP files within 0.6 mm.
 
-These tests skip when the private customer files are absent, so a public checkout has fewer tests than the 162 above. Without those files, the count of passing tests alone says nothing about this comparison.
+These tests skip when the private customer files are absent, so a public checkout has fewer tests than the 195 above. Without those files, the count of passing tests alone says nothing about this comparison.
 
 ## Real job
 
-On the 111 pieces of the Ba+1 job, at the default 5 mm gap with the two bottom clamp corners, a 3-second search gives 4 sheets, the same as the original engine and the hand layout. 78.96 m of wire path, 34.5% utilization, no validation errors.
+On a real 111-piece customer job, at the default 5 mm gap with the two bottom clamp corners, a 3-second search gives 4 sheets, the same as the original engine and the hand layout. 78.96 m of wire path, 34.5% utilization, no validation errors.
 
 Utilization is the letter area divided by the area of the sheets, including the partly used last sheet.
 

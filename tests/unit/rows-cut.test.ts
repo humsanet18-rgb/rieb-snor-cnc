@@ -10,7 +10,7 @@ import { validateSheet } from '../../src/engines/toolpath-engine/validate';
 import { placeTransform } from '../../src/engines/geometry-engine/geometry';
 import type { Part, PlacedItem, Polygon, Rect, StartSpec } from '../../src/types/geometry';
 import type { CutOptions } from '../../src/types/project';
-import { box, partsOf, placed, privateFile, readSample, rectPart } from './helpers';
+import { box, partsOf, placed, privateFile, privateJobs, readSample, rectPart } from './helpers';
 
 const options = (o: Partial<RowOptions> = {}): RowOptions => ({
   tolerance: 20, align: 'bottom', order: 'height', fillGaps: false, tight: true,
@@ -256,7 +256,7 @@ describe('cutting order', () => {
     expect(retraceLength([[0, 0], [10, 0], [10, 10]])).toBe(0);
   });
 
-  const job = privateFile('Ba+1 01.svg');
+  const job = privateJobs().length ? privateFile(privateJobs()[0] + '.svg') : null;
   it.skipIf(!job)('handles a real job in rows, cut row by row', () => {
     const parts = partsOf(job!), r = arrangeRows(parts, options({ startBox: { x: 0, y: 0, w: 28, h: 26 }, zones: [{ x: 0, y: 430, w: 150, h: 50 }, { x: 950, y: 430, w: 50, h: 50 }] }));
     expect(r.unplaced).toEqual([]);

@@ -6,9 +6,9 @@ import { parseSvg } from '../../src/engines/svg-parser/parse-svg';
 import { buildStroke } from '../../src/engines/toolpath-engine/stroke';
 import { toSVG } from '../../src/engines/export/svg-export';
 import type { Part, StartSpec } from '../../src/types/geometry';
-import { legacy, privateFile } from '../unit/helpers';
+import { legacy, privateFile, privateJobs } from '../unit/helpers';
 
-const FILES = ['Ba+1 01', 'Ba+1 02', 'Ba+1 03', 'Ba+1 04'];
+const FILES = privateJobs();
 const DATE = '1/1/2026 12:00:00 AM';
 const OPTS = { feed: 500, power: 300, m5: false, date: DATE };
 const ZONES = [{ x: 0, y: 430, w: 150, h: 50 }, { x: 950, y: 430, w: 50, h: 50 }];
@@ -19,7 +19,7 @@ function startOf(markers: [number, number][][]): StartSpec {
 }
 
 // The same text through both engines, keep-position mode, compared to the byte.
-describe.skipIf(!privateFile('Ba+1 01.svg'))('regression against the original engine (real customer files)', () => {
+describe.skipIf(!FILES.length)('regression against the original engine (real customer files)', () => {
   for (const name of FILES) {
     const text = privateFile(name + '.svg')!;
 

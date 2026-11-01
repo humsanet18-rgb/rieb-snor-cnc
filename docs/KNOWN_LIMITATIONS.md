@@ -7,7 +7,7 @@
 | Real Mach3 and a real machine | **Never run.** TAP files were compared with FCNC output and parsed by the app's own checker. Nothing has moved a machine. | Load a file in Mach3, dry-run with the wire cold, then cut a scrap test |
 | Firefox | **Not run.** Windows refused to start the Playwright Firefox build on the test computer (`spawn UNKNOWN`). That block was left in place. | Run `npm run test:e2e:firefox` on another computer |
 | Real iPad or Android tablet | Not run. Tablet width was checked in desktop browsers. Pinch zoom is written but has no automated test, and manual dragging was only tested with a mouse. | Try it on a real tablet |
-| Real public hosting | Live on GitHub Pages, which does not send the headers in `public/_headers`. Automated tests run on the local preview server. | Follow [DEPLOYMENT.md](DEPLOYMENT.md) for a host that sends them |
+| Real public hosting | Live on Vercel, which sends the headers, and on GitHub Pages, which does not. Automated tests run on the local preview server. | Use the Vercel address, as in [DEPLOYMENT.md](DEPLOYMENT.md) |
 | Files from other software | SVGs were tested from CorelDRAW and hand-written cases. Illustrator and Inkscape exports were not tried. | Check the import report on the first few files |
 
 ## Machine and safety
@@ -53,9 +53,23 @@
 - Undo covers project changes in the current session only, up to 40 steps. It is not saved.
 - Only one tab should edit a project at a time; the last save wins.
 
+## Shop records
+
+- There is no login, no roles and no server, by the owner's choice. Anyone using this browser can see and change the records, and the activity list cannot say who made a change.
+- Records live in one browser at one web address. Vercel and GitHub Pages hold separate records. Clearing browser data deletes them, and the browser may evict them under disk pressure even after the app asks to keep them. Save backup files.
+- A backup file is plain text and contains customer details. It is not encrypted.
+- One currency per shop, locked once records exist. Old amounts do not convert.
+- Orders cannot be deleted, only cancelled. A cancelled order keeps its payments until you remove them, and those payments still count as received.
+- Lowering an order's price below what was paid shows a negative balance. Refunds are recorded by removing a payment.
+- Stock is what you record. Cutting a job does not reduce it, because the app cannot know which foam was used.
+- Reports count money by date paid and foam by date recorded. This is a workshop summary, not accounting or tax software.
+- The activity list keeps the latest 500 entries.
+- On phones the card layout has no column sorting. Search and filters still work.
+- All records load into memory together. This is fine for thousands of orders, not for hundreds of thousands.
+
 ## Other
 
 - The PDF report uses page images, so its text cannot be selected or searched. This was chosen so Khmer always renders correctly without embedding font subsets.
-- Phone-width screens work as one long page, but the app is meant for desktop and tablet.
+- Phone-width screens work, and the Shop screens suit them well, but nesting and the canvas are meant for desktop and tablet.
 - Screen-reader use has labels throughout but has not been tested with an actual screen reader.
 - The app is not installable as a desktop program, by design. It can be added to a home screen as a PWA.

@@ -28,34 +28,36 @@ export function TopBar() {
         </svg>
         <span className="brand-name">{t('app.name')}</span>
       </div>
-      <input className="project-name" value={name} aria-label={t('project.rename')} maxLength={120} data-testid="project-name"
-        onChange={e => commit(p => ({ ...p, name: e.target.value }))} />
+      {view !== 'shop' && <input className="project-name" value={name} aria-label={t('project.rename')} maxLength={120} data-testid="project-name"
+        onChange={e => commit(p => ({ ...p, name: e.target.value }))} />}
       <div className="view-tabs" role="tablist" aria-label={t('view.tabs')}>
-        {(['work', 'editor'] as const).map(v => (
+        {(['work', 'editor', 'shop'] as const).map(v => (
           <button type="button" key={v} role="tab" aria-selected={view === v} className={view === v ? 'on' : ''} onClick={() => uiStore.patch({ view: v })} data-testid={`view-${v}`}>
             {t(`view.${v}`)}
           </button>
         ))}
       </div>
       <nav className="actions" aria-label={t('app.name')}>
-        <IconButton icon="new" label={t('nav.new')} onClick={() => void createProject()} testId="nav-new" />
-        <IconButton icon="open" label={t('nav.open')} onClick={() => uiStore.patch({ dialog: 'open' })} testId="nav-open" />
-        <IconButton icon="save" label={t('nav.save')} onClick={() => void saveNow()} testId="nav-save" />
-        <span className="sep" />
-        <IconButton icon="undo" label={t('nav.undo')} disabled={!canUndo} onClick={undo} testId="undo" />
-        <IconButton icon="redo" label={t('nav.redo')} disabled={!canRedo} onClick={redo} testId="redo" />
-        <span className="sep" />
+        {view !== 'shop' && <>
+          <IconButton icon="new" label={t('nav.new')} onClick={() => void createProject()} testId="nav-new" />
+          <IconButton icon="open" label={t('nav.open')} onClick={() => uiStore.patch({ dialog: 'open' })} testId="nav-open" />
+          <IconButton icon="save" label={t('nav.save')} onClick={() => void saveNow()} testId="nav-save" />
+          <span className="sep" />
+          <IconButton icon="undo" label={t('nav.undo')} disabled={!canUndo} onClick={undo} testId="undo" />
+          <IconButton icon="redo" label={t('nav.redo')} disabled={!canRedo} onClick={redo} testId="redo" />
+          <span className="sep" />
+        </>}
         <button type="button" className="lang" onClick={() => { uiStore.patch({ lang: lang === 'km' ? 'en' : 'km' }); savePrefs(); }} data-testid="lang">{t('nav.lang')}</button>
         <IconButton icon={theme === 'dark' ? 'sun' : 'moon'} label={theme === 'dark' ? t('nav.light') : t('nav.dark')} testId="theme"
           onClick={() => { uiStore.patch({ theme: theme === 'dark' ? 'light' : 'dark' }); savePrefs(); }} />
         <IconButton icon="help" label={t('nav.help')} onClick={() => uiStore.patch({ dialog: 'help' })} testId="nav-help" />
         <IconButton icon="gear" label={t('nav.settings')} onClick={() => uiStore.patch({ dialog: 'settings' })} testId="nav-settings" />
       </nav>
-      <span className={'save-state ' + saveState} role="status" data-testid="save-state"
+      {view !== 'shop' && <span className={'save-state ' + saveState} role="status" data-testid="save-state"
         title={saveState === 'error' ? t(saveError === 'quota' ? 'save.error.quota' : 'save.error.other') : undefined}>
         {saveState === 'error' && <Icon name="warn" size={15} />}
         {t(saveState === 'saved' ? 'save.saved' : saveState === 'saving' ? 'save.saving' : 'save.error')}
-      </span>
+      </span>}
     </header>
   );
 }

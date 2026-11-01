@@ -4,7 +4,7 @@ Foam nesting and Mach3 toolpath generator for hot-wire CNC shops. It runs entire
 
 កម្មវិធីរៀបអក្សរស្នោលើសន្លឹក និងបង្កើតឯកសារ TAP សម្រាប់ Mach3។ ដំណើរការក្នុងកម្មវិធីរុករក ឯកសារមិនបញ្ជូនទៅណាទេ។
 
-**Open the app:** https://humsanet18-rgb.github.io/rieb-snor-cnc/
+**Open the app:** https://rieb-snor-cnc.vercel.app/
 
 ## What it does
 
@@ -18,6 +18,8 @@ Foam nesting and Mach3 toolpath generator for hot-wire CNC shops. It runs entire
 8. **Export** TAP, SVG, ZIP, a project backup and a PDF cutting report.
 
 The **EDITOR** screen plays the wire along the path, with its X and Y, the distance and time left, and the G-code line it is on. Click a line to put the wire there.
+
+The **Shop** screen runs the workshop: customers, orders from quote to delivery, the cutting queue, foam stock, payments, expenses, quotation and invoice PDFs, reports with Excel export, and backups. Records stay in this browser. There is no login or server, so save backup files.
 
 ## ⚠ Safety
 
@@ -50,9 +52,12 @@ Sample files are in `public/samples/`, and the app has buttons for them in step 
 
 ## Documents
 
+- [User guide, in Khmer](docs/USER_GUIDE.md)
+- [Project audit](docs/PROJECT_AUDIT.md), [feature inventory](docs/FEATURE_INVENTORY.md), [missing features](docs/MISSING_FEATURES.md), [security audit](docs/SECURITY_AUDIT.md) and [roadmap](docs/IMPROVEMENT_ROADMAP.md)
+- [Final report](docs/FINAL_IMPLEMENTATION_REPORT.md), [test results](docs/TEST_RESULTS.md) and [remaining issues](docs/REMAINING_ISSUES.md)
 - [Technical audit of the original app](docs/AUDIT.md)
 - [Installation guide](docs/INSTALL.md)
-- [Deployment guide](docs/DEPLOYMENT.md)
+- [Deployment guide](docs/DEPLOYMENT.md), also [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 - [Testing and results](docs/TESTING.md)
 - [Known limitations](docs/KNOWN_LIMITATIONS.md)
 
@@ -65,8 +70,8 @@ src/
   engines/      framework-free logic, each testable alone
     svg-parser/  geometry-engine/  nesting-engine/
     toolpath-engine/  gcode-engine/  export/
-  features/     panels, canvas, playback and editor, by workflow step
-  services/     IndexedDB, project files, downloads, worker client
+  features/     panels, canvas, playback and editor, by workflow step; shop/ for the workshop records
+  services/     IndexedDB, project and shop files, downloads, worker client
   stores/       project and interface state
   workers/      engine worker, service worker template
   styles/       one stylesheet with light and dark tokens

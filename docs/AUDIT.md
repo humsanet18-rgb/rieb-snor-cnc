@@ -18,7 +18,7 @@ The original is kept unchanged at `tests/fixtures/legacy-engine.cjs`. The regres
 
 Polygon flattening of SVG paths, outer and hole detection by containment, duplicate removal, copies, sheet and gap settings, rotation, clamp corner zones, the start box, the continuous single stroke, bridges, preview, TAP export byte-compatible with FCNC, sheet SVG export, ZIP export, the original-position mode and fill by rows or columns.
 
-The functions `parseSVG`, `buildParts`, `rasterize`, `makeVariants`, `greedyPass`, `nest`, `buildStroke`, `simplifyPath`, `toTAP`, `toSVG` and `makeZip` were ported to typed modules under `src/engines/`. Their algorithms were kept. The port was proven by regression, not by reading: on the four real Ba+1 files the parser output, the parts, and the TAP and SVG files are byte-identical to the original, with and without clamp zones.
+The functions `parseSVG`, `buildParts`, `rasterize`, `makeVariants`, `greedyPass`, `nest`, `buildStroke`, `simplifyPath`, `toTAP`, `toSVG` and `makeZip` were ported to typed modules under `src/engines/`. Their algorithms were kept. The port was proven by regression, not by reading: on four real customer files the parser output, the parts, and the TAP and SVG files are byte-identical to the original, with and without clamp zones.
 
 ## Known limitations found
 

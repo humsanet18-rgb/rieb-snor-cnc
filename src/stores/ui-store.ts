@@ -17,6 +17,8 @@ export interface JobState {
 
 export interface ImportFailure { name: string; code: ImportIssueCode; detail?: string }
 
+export type ShopTab = 'dashboard' | 'orders' | 'production' | 'customers' | 'stock' | 'money' | 'reports' | 'settings';
+
 export interface UiState {
   lang: Lang;
   theme: Theme;
@@ -34,7 +36,10 @@ export interface UiState {
   failures: ImportFailure[];
   confirmed: boolean;
   playback: { position: number; playing: boolean; speed: number };
-  view: 'work' | 'editor';
+  view: 'work' | 'editor' | 'shop';
+  shopTab: ShopTab;
+  /** The order open in its detail dialog. */
+  shopOrder: string | null;
   /** Keeps the wire centred while the editor plays it back. */
   follow: boolean;
   flash: Point | null;
@@ -52,7 +57,7 @@ export const uiStore = new Store<UiState>({
   step: 1, dialog: null, selected: null, sheet: 0,
   layers: { designs: true, toolpath: true, bridges: true, zones: true, start: true, grid: true, order: false, ...prefs.layers },
   job: null, toolpaths: null, toolpathKey: null, toolpathBusy: false, toast: null, failures: [], confirmed: false,
-  playback: { position: 0, playing: false, speed: 10 }, view: 'work', follow: false, flash: null
+  playback: { position: 0, playing: false, speed: 10 }, view: 'work', shopTab: 'dashboard', shopOrder: null, follow: false, flash: null
 });
 
 export function savePrefs(): void {

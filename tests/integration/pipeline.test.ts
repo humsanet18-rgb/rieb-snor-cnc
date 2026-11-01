@@ -12,7 +12,7 @@ import {
 import { runStrokes, type StrokeJob } from '../../src/workers/jobs';
 import type { Part } from '../../src/types/geometry';
 import type { Design, Layout, Settings } from '../../src/types/project';
-import { legacy, partsOf, privateFile, readSample } from '../unit/helpers';
+import { legacy, partsOf, privateFile, privateJobs, readSample } from '../unit/helpers';
 
 function design(name: string, text: string, qty = 1): Design {
   const parsed = parseSvg(text), out = finishImport(name, text.length, parsed, buildParts(parsed.shapes));
@@ -98,10 +98,10 @@ describe('large dataset (case 23)', () => {
   }, 120000);
 });
 
-const files = [1, 2, 3, 4].map(n => privateFile(`Ba+1 0${n}.svg`));
-describe.skipIf(files.some(f => f === null))('real shop job', () => {
+const jobs = privateJobs(), files = jobs.map(n => privateFile(`${n}.svg`));
+describe.skipIf(jobs.length !== 4)('real shop job', () => {
   it('fits the 111 real pieces on as few sheets as the original engine, or fewer', async () => {
-    const designs = files.map((f, i) => design(`Ba+1 0${i + 1}`, f!));
+    const designs = files.map((f, i) => design(jobs[i], f!));
     const settings = { ...defaultSettings(), seconds: 3 };
     const l = await autoLayout(designs, settings);
     expect(l.unplaced).toEqual([]);
