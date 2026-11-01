@@ -6,7 +6,7 @@ Date: 2026-11-01.
 
 Rieb Snor CNC keeps everything it did before and now has a Shop screen that runs the workshop: customers, orders, the cutting queue, foam stock, payments, reports and backups. The whole app now fits screens from 360 to 1920 px wide.
 
-**Deployment status: not deployed.** This work is on the local computer and is not yet committed or pushed. A push to `main` deploys it, and that needs the owner's approval. The live sites still run the earlier version.
+**Deployment status: live on 2026-11-02, with the owner's approval.** Commit `cbb4cb3` was pushed to `main`. Vercel and GitHub Pages both serve the same main script as the local build. The browser tests were run against the Vercel address, and GitHub Pages had a shorter check. The results are in [TEST_RESULTS.md](TEST_RESULTS.md). The Vercel dashboard itself was not opened, because it needs the owner's sign-in.
 
 ## Decisions by the owner
 
@@ -52,7 +52,6 @@ Login, roles, server permissions, shared records, server backups, messaging, onl
 
 | Item | Blocked by |
 | --- | --- |
-| Deployment and live verification | The owner's approval to push |
 | Vercel dashboard checks | The owner's sign-in |
 | Mach3 and machine test | Physical access |
 | Firefox tests | A Windows block, left in place |
@@ -67,7 +66,7 @@ This app does not guarantee that G-code is safe. No file has been run on Mach3 o
 
 ## Results
 
-Type check clean, 195 unit and integration tests, 31 browser tests each in Chromium and WebKit, and 0 known vulnerabilities. Details, including failures seen along the way, are in [TEST_RESULTS.md](TEST_RESULTS.md).
+Type check clean, 195 unit and integration tests, 31 browser tests each in Chromium and WebKit on the local build, and 0 known vulnerabilities. The first browser run on the live Vercel site passed 58 of 62. Two failures were a mistake in a test, now fixed. Two were downloads cancelled in Chromium with the cause not proven, and they did not come back in later runs. Details, including failures seen along the way, are in [TEST_RESULTS.md](TEST_RESULTS.md).
 
 ## Documents
 

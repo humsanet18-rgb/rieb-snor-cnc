@@ -1,6 +1,6 @@
 # Test results
 
-Run on 2026-11-01 on Windows 11 with Node 24.13, against the production build, with the Content Security Policy and service worker active. These results are for the local build. The live sites do not have this work until it is pushed.
+Run on 2026-11-01 on Windows 11 with Node 24.13, against the production build, with the Content Security Policy and service worker active. The first section is for the local build. The live checks of 2026-11-02 follow it.
 
 ## Final build
 
@@ -20,6 +20,31 @@ Run on 2026-11-01 on Windows 11 with Node 24.13, against the production build, w
 | Printing on paper | none | **Not run** |
 
 The browser suite passed 62 of 62 twice in a row on the final build.
+
+## Live sites, 2026-11-02
+
+Commit `cbb4cb3` was pushed to `main`. Both sites then served the same main script as the local build, `assets/index-cp3n_dMp.js`.
+
+| Check | Site | Result |
+| --- | --- | --- |
+| Full browser suite, first run | Vercel | 58 of 62 passed, 4 failed |
+| The 3 failing tests, repeated 5 times in Chromium and WebKit, after the test fix | Vercel | 30 of 30 passed |
+| Backup test after the test fix | Local build, Chromium | Passed |
+| Security headers | Vercel | Strict-Transport-Security, X-Content-Type-Options, X-Frame-Options and Referrer-Policy present |
+| Opens, Shop screen shows, service worker active, no console errors | GitHub Pages | Passed. Short check only, the full suite was not run here |
+| Vercel dashboard | Vercel | **Not checked.** It needs the owner's sign-in |
+
+The full suite was not run again after the test fix. The 58 tests that passed and the 3 repeated tests cover all 31 in each browser, but not in one single run.
+
+The 4 failures in the first run:
+
+| Failure | Browser | Cause |
+| --- | --- | --- |
+| Project backup restores in a clean browser | Chromium, WebKit | **Test mistake.** The test had `http://localhost:4173` written into it, so it could not reach the live site. Fixed |
+| Imports, nests, validates and exports real files | Chromium | A download reported as cancelled (`download.path: canceled`). **Cause not proven** |
+| Quotation and invoice PDFs download | Chromium | The same error. **Cause not proven** |
+
+The two cancelled downloads did not repeat in 6 more runs of each test across both browsers. They happened only when the whole suite ran in one pass. That may mean the computer was busy, but this was not shown, so a real problem with downloads is not ruled out.
 
 ## Failures seen during the work
 
@@ -70,4 +95,4 @@ A Khmer invoice PDF: Khmer text rendered correctly, and the sums were right (102
 - Filling the time estimate from the open project.
 - Storage full or blocked. The save error path exists and shows a message, but no test forces it for shop records.
 - Very large record counts. The tests use a handful of records.
-- The new work on the live sites.
+- The full browser suite on GitHub Pages.

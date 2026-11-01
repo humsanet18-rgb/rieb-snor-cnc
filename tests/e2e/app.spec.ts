@@ -170,7 +170,7 @@ test('project backup restores in a clean browser and bad backups are refused', a
   await openStep(page, 8);
   const [json] = await Promise.all([page.waitForEvent('download'), page.getByTestId('download-project').click()]);
   const path = (await json.path())!;
-  const context = await browser.newContext({ baseURL: 'http://localhost:4173' });
+  const context = await browser.newContext({ baseURL: test.info().project.use.baseURL });
   const clean = await context.newPage();
   await start(clean);
   await clean.getByTestId('nav-open').click();

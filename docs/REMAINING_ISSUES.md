@@ -9,6 +9,7 @@ No Critical issue is open.
 | High | Two live addresses hold separate records | Vercel and GitHub Pages do not share data | Use the Vercel address only |
 | High | No login or roles, by the owner's choice | Anyone using this browser can read and change records. Changes cannot be traced to a person | Use a protected Windows account. A hosted system would be a separate project |
 | Medium | One full browser run failed 4 tests | Cause not proven. Two later runs passed 62 of 62. See [TEST_RESULTS.md](TEST_RESULTS.md) | Investigate if it comes back |
+| Medium | Two downloads were cancelled in one live test run | Chromium, during a full run on Vercel. Cause not proven. Did not repeat in later runs. See [TEST_RESULTS.md](TEST_RESULTS.md) | If a real download fails, try again and report it |
 | Medium | Firefox not tested | Windows blocks the test browser here | Run the Firefox suite on another computer |
 | Medium | Real phone and tablet not tested | Sizes were set in a desktop browser | Try it on the workshop's device |
 | Medium | Printing not tested | PDFs were checked on screen only | Print one invoice |
