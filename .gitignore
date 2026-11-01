@@ -1,0 +1,8 @@
+node_modules
+dist
+test-results
+playwright-report
+*.log
+.env*
+# Customer designs used by the regression test. Never commit or publish them.
+tests/fixtures/private
