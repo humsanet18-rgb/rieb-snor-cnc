@@ -4,6 +4,8 @@ Foam nesting and Mach3 toolpath generator for hot-wire CNC shops. It runs entire
 
 កម្មវិធីរៀបអក្សរស្នោលើសន្លឹក និងបង្កើតឯកសារ TAP សម្រាប់ Mach3។ ដំណើរការក្នុងកម្មវិធីរុករក ឯកសារមិនបញ្ជូនទៅណាទេ។
 
+**Open the app:** https://humsanet18-rgb.github.io/rieb-snor-cnc/
+
 ## What it does
 
 1. **Import** SVG files from CorelDRAW, and report everything it could not use.

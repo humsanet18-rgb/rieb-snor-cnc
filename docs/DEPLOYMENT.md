@@ -28,7 +28,7 @@ Build command `npm run build`, output directory `dist`. Both read `public/_heade
 
 ### GitHub Pages
 
-Publish `dist/` with the Pages action. Pages ignores `_headers`, so the security headers below will be missing. The Content Security Policy still applies, because it is a `<meta>` tag in the page.
+The live site is https://humsanet18-rgb.github.io/rieb-snor-cnc/. `.github/workflows/deploy.yml` builds every push to `main` and publishes `dist/` to the `gh-pages` branch, and Pages serves that branch. Pages ignores `_headers`, so the security headers below will be missing. The Content Security Policy still applies, because it is a meta tag in the page.
 
 ### nginx or Apache
 

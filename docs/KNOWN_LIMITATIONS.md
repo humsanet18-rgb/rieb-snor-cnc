@@ -7,7 +7,7 @@
 | Real Mach3 and a real machine | **Never run.** TAP files were compared with FCNC output and parsed by the app's own checker. Nothing has moved a machine. | Load a file in Mach3, dry-run with the wire cold, then cut a scrap test |
 | Firefox | **Not run.** Windows refused to start the Playwright Firefox build on the test computer (`spawn UNKNOWN`). That block was left in place. | Run `npm run test:e2e:firefox` on another computer |
 | Real iPad or Android tablet | Not run. Tablet width was checked in desktop browsers. Pinch zoom is written but has no automated test, and manual dragging was only tested with a mouse. | Try it on a real tablet |
-| Real public hosting | Not deployed. Headers and the service worker were only exercised on the local preview server. | Follow [DEPLOYMENT.md](DEPLOYMENT.md) |
+| Real public hosting | Live on GitHub Pages, which does not send the headers in `public/_headers`. Automated tests run on the local preview server. | Follow [DEPLOYMENT.md](DEPLOYMENT.md) for a host that sends them |
 | Files from other software | SVGs were tested from CorelDRAW and hand-written cases. Illustrator and Inkscape exports were not tried. | Check the import report on the first few files |
 
 ## Machine and safety
