@@ -44,7 +44,7 @@ The 4 failures in the first run:
 | Imports, nests, validates and exports real files | Chromium | A download reported as cancelled (`download.path: canceled`). **Cause not proven** |
 | Quotation and invoice PDFs download | Chromium | The same error. **Cause not proven** |
 
-The two cancelled downloads did not repeat in 6 more runs of each test across both browsers. They happened only when the whole suite ran in one pass. That may mean the computer was busy, but this was not shown, so a real problem with downloads is not ruled out.
+The two cancelled downloads did not repeat in 12 more runs of each test, 6 in each browser. They happened only when the whole suite ran in one pass. That may mean the computer was busy, but this was not shown, so a real problem with downloads is not ruled out.
 
 ## Failures seen during the work
 
