@@ -29,6 +29,8 @@ jobs:
           TOKEN: ${{ github.token }}
         run: |
           touch .nojekyll
+          # This branch holds built files only; Vercel deploys from main and must skip it.
+          echo '{ "git": { "deploymentEnabled": false } }' > vercel.json
           git init -q -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
