@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { tapOf } from '../../app/actions';
 import { formatDuration, useT } from '../../app/i18n';
-import { Check, IconButton } from '../../components/ui';
+import { Check, IconButton, PanelCard } from '../../components/ui';
 import { TAP_FIRST_MOVE } from '../../engines/gcode-engine/tap';
 import { activeLayout, activeProfile, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
@@ -62,24 +62,21 @@ export function EditorPanel() {
   const lines = useMemo(() => (path ? tapOf(index)?.text.split('\r\n') ?? [] : []), [path, index, profile]);
   const manualAllowed = layout?.mode !== 'keep';
   const fields = (
-    <>
-      <h2 className="editor-head">{t('editor.options')}</h2>
+    <PanelCard title={t('editor.options')} icon="path">
       <CutFields />
       {manualAllowed && (
         <Check label={t('editor.manual')} checked={project.settings.mode === 'manual'} testId="editor-manual"
           onChange={v => setSettings(x => ({ ...x, mode: v ? 'manual' : 'auto' }))} />
       )}
       {project.settings.mode === 'manual' && <p className="hint">{t('editor.manualHint')}</p>}
-    </>
+    </PanelCard>
   );
   if (!path || !toolpath || !motion) {
     return (
-      <aside className="workflow editor-panel" data-testid="editor">
-        <div className="editor-body">
-          <p className="hint" data-testid="editor-empty">{busy ? t('path.busy') : t('editor.empty')}</p>
-          {fields}
-        </div>
-      </aside>
+      <div className="editor-panel" data-testid="editor">
+        <p className={busy ? 'progress-note' : 'empty-note'} data-testid="editor-empty">{busy ? t('path.busy') : t('editor.empty')}</p>
+        {fields}
+      </div>
     );
   }
   const total = cumulative[cumulative.length - 1] ?? 0, at = Math.min(position, total), node = nodeAt(cumulative, at);
@@ -91,9 +88,8 @@ export function EditorPanel() {
     if (n >= 0 && n < path.length) go(cumulative[n]);
   };
   return (
-    <aside className="workflow editor-panel" data-testid="editor">
-      <div className="editor-body">
-        <h2 className="editor-head">{t('editor.position')}</h2>
+    <div className="editor-panel" data-testid="editor">
+      <PanelCard title={t('card.playback')} icon="editor">
         <dl className="motion" data-testid="motion">
           <div><dt>X</dt><dd data-testid="motion-x">{x.toFixed(2)}</dd></div>
           <div><dt>Y</dt><dd data-testid="motion-y">{y.toFixed(2)}</dd></div>
@@ -111,11 +107,12 @@ export function EditorPanel() {
           <button type="button" className="btn" disabled={!next} onClick={() => next && go(cumulative[next.node])} data-testid="next-piece">{t('editor.nextPiece')}</button>
         </div>
         <Check label={t('editor.follow')} checked={follow} testId="follow" onChange={v => uiStore.patch({ follow: v })} />
-        {fields}
-        <h2 className="editor-head">{t('editor.gcode')}</h2>
+      </PanelCard>
+      <PanelCard title={t('card.gcode')} icon="file">
         <GCodeList lines={lines} current={TAP_FIRST_MOVE + node} pick={pick} />
         <p className="hint">{t('editor.gcodeHint')}</p>
-      </div>
-    </aside>
+      </PanelCard>
+      {fields}
+    </div>
   );
 }

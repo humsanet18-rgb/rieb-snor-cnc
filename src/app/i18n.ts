@@ -3,9 +3,11 @@ import { uiStore, type Lang } from '../stores/ui-store';
 import type { ImportIssueCode } from '../engines/svg-parser/report';
 import type { ValidationCode } from '../engines/toolpath-engine/validate';
 import { shopEn, shopKm } from './i18n-shop';
+import { uiEn, uiKm } from './i18n-ui';
 
 const en = {
   ...shopEn,
+  ...uiEn,
   'app.name': 'Rieb Snor CNC',
   'app.tagline': 'Foam nesting and Mach3 toolpaths',
   'nav.new': 'New', 'nav.open': 'Open', 'nav.save': 'Save', 'nav.undo': 'Undo', 'nav.redo': 'Redo',
@@ -21,7 +23,7 @@ const en = {
   'import.samples': 'Try a sample', 'import.sample.letters': 'Block letters', 'import.sample.shapes': 'Mixed shapes', 'import.sample.warnings': 'File with problems',
   'import.progress': 'Reading {name}… ({done}/{total})', 'import.failed': 'Could not import',
 
-  'designs.empty': 'No designs yet. Import an SVG in step 1.', 'designs.pieces': '{n} pieces', 'designs.contours': '{n} contours', 'designs.size': '{w} × {h} cm',
+  'designs.empty': 'No designs yet. Import SVG files above, or type Khmer text on the Khmer Text screen.', 'designs.pieces': '{n} pieces', 'designs.contours': '{n} contours', 'designs.size': '{w} × {h} cm',
   'designs.qty': 'Copies', 'designs.more': 'Add copy', 'designs.less': 'Remove copy', 'designs.remove': 'Remove {name}',
   'designs.report': 'Import report', 'designs.check': 'Needs correction', 'designs.fixed': 'Keep upright', 'designs.total': '{n} pieces in total',
 
@@ -69,25 +71,25 @@ const en = {
   'canvas.fit': 'Fit to view', 'canvas.zoomIn': 'Zoom in', 'canvas.zoomOut': 'Zoom out', 'canvas.layers': 'Layers', 'canvas.sheetOf': 'Sheet {n} / {total}', 'canvas.prev': 'Previous sheet', 'canvas.next': 'Next sheet',
   'layer.designs': 'Designs', 'layer.toolpath': 'Wire path', 'layer.bridges': 'Bridges', 'layer.zones': 'Clamp zones', 'layer.start': 'Start point', 'layer.grid': 'Grid', 'layer.order': 'Cutting order',
   'canvas.empty.title': 'Nest foam letters and cut them with Mach3', 'canvas.empty.body': 'Import SVG files from CorelDRAW. The app arranges them on the foam sheet, joins them into one wire stroke and writes a TAP file. Everything runs in your browser.',
-  'canvas.preview': 'Sheet preview, {w} × {h} mm', 'canvas.noLayout': 'Generate a layout in step 4 to see the sheet.',
+  'canvas.preview': 'Sheet preview, {w} × {h} mm', 'canvas.noLayout': 'Designs are ready. Generate a layout in Nesting to place them on the sheet.',
   'play.play': 'Play', 'play.pause': 'Pause', 'play.speed': 'Speed', 'play.position': 'Wire position', 'play.note': 'Shows the path data only. It does not simulate the machine.', 'play.toStart': 'Back to start',
 
   'props.title': 'Properties', 'props.piece': 'Piece', 'props.design': 'Design', 'props.copy': 'Copy', 'props.x': 'X (mm)', 'props.y': 'Y (mm)', 'props.w': 'Width', 'props.h': 'Height', 'props.rotation': 'Rotation (°)',
-  'props.rotate90': 'Rotate 90°', 'props.area': 'Area', 'props.outers': 'Outer contours', 'props.holes': 'Holes', 'props.points': 'Points', 'props.moveSheet': 'Move to sheet', 'props.manualOnly': 'Choose Manual adjustment in step 4 to change position.',
+  'props.rotate90': 'Rotate 90°', 'props.area': 'Area', 'props.outers': 'Outer contours', 'props.holes': 'Holes', 'props.points': 'Points', 'props.moveSheet': 'Move to sheet', 'props.manualOnly': 'Choose Manual adjustment in Nesting to change position.',
   'props.none': 'Select a piece on the canvas.', 'props.sheet': 'This sheet', 'props.job': 'This layout', 'props.sheets': 'Sheets', 'props.pieces': 'Pieces', 'props.usedArea': 'Used area', 'props.utilization': 'Utilization', 'props.waste': 'Waste',
   'props.cut': 'Cutting distance', 'props.leftover': 'Leftover strip', 'props.deselect': 'Clear selection',
 
   'open.title': 'Open project', 'open.recent': 'Recent projects', 'open.none': 'No saved projects on this device.', 'open.local': 'Projects are stored in this browser on this device only. They are lost if browser data is cleared. Export a backup to keep them safe.',
-  'open.import': 'Import backup (.json)', 'open.open': 'Open', 'open.duplicate': 'Duplicate', 'open.delete': 'Delete', 'open.deleteConfirm': 'Delete “{name}” from this device?', 'open.summary': '{designs} designs · {sheets} sheets · {date}',
+  'open.import': 'Import backup (.json)', 'open.open': 'Open', 'open.duplicate': 'Duplicate', 'open.delete': 'Delete', 'open.deleteConfirm': 'Delete “{name}” from this device?', 'open.summary': 'Designs: {designs} · Sheets: {sheets} · {date}',
   'open.badFile': 'That backup file is not valid ({why}). Nothing was changed.', 'open.copyOf': '{name} (copy)',
 
   'settings.title': 'App settings', 'settings.language': 'Language', 'settings.theme': 'Theme', 'settings.storage': 'Storage on this device', 'settings.storageUse': '{used} of {quota} used', 'settings.storageUnknown': 'This browser does not report storage use.',
   'settings.clear': 'Delete all local projects and profiles', 'settings.clearConfirm': 'Delete every project and machine profile stored in this browser? This cannot be undone.', 'settings.cleared': 'Local data deleted.',
   'settings.privacy': 'No account, no upload. All calculation runs in your browser.', 'common.close': 'Close', 'common.cancel': 'Cancel',
 
-  'help.title': 'How to use', 'help.flow': 'Work from step 1 to step 8 on the left.', 'help.h1': 'Prepare the file', 'help.b1': 'In CorelDRAW, convert text to curves and export SVG. Weld letters that touch.',
-  'help.h2': 'Clamp corners', 'help.b2': 'Step 3 keeps corners free so the head does not hit the clamps. No letter and no wire path enters them.',
-  'help.h3': 'Keys', 'help.b3': 'Ctrl+Z undo, Ctrl+Y redo, Ctrl+S save. On the canvas: wheel to zoom, drag to pan. In manual mode: arrows nudge 1 mm, R rotates 90°, Esc clears the selection.',
+  'help.title': 'How to use', 'help.flow': 'Work down the screens in the sidebar: import or type the designs, nest them, check the machine and the path, then export. Home shows where the job stands.', 'help.h1': 'Prepare the file', 'help.b1': 'In CorelDRAW, convert text to curves and export SVG. Weld letters that touch.',
+  'help.h2': 'Clamp corners', 'help.b2': 'Nesting keeps corners free so the head does not hit the clamps. No letter and no wire path enters them.',
+  'help.h3': 'Keys', 'help.b3': 'Ctrl+Z undo, Ctrl+Y redo, Ctrl+S save. On the canvas: wheel or pinch to zoom, drag to pan, Shift-drag or the box tool to select an area, Shift-click to add a piece, Ctrl+A to select the whole sheet. In manual mode: arrows nudge 1 mm (Shift: 10 mm), R rotates 90°, Esc clears the selection.',
   'help.h4': 'Safety', 'help.b4': 'This app has not been tested on your machine. Check every TAP file in Mach3, dry-run with the wire cold, and stay at the machine. The hot wire and fumes are your responsibility to manage.',
   'help.h5': 'Your data', 'help.b5': 'Files are read in the browser and are never uploaded. Saved projects stay on this device.',
 
@@ -120,6 +122,7 @@ export type Key = keyof typeof en;
 
 const km: Record<Key, string> = {
   ...shopKm,
+  ...uiKm,
   'app.name': 'រៀបស្នោ CNC',
   'app.tagline': 'រៀបស្នោ និងបង្កើតផ្លូវកាត់សម្រាប់ Mach3',
   'nav.new': 'ថ្មី', 'nav.open': 'បើក', 'nav.save': 'រក្សាទុក', 'nav.undo': 'ថយក្រោយ', 'nav.redo': 'ទៅមុខវិញ',
@@ -135,7 +138,7 @@ const km: Record<Key, string> = {
   'import.samples': 'សាកល្បងឧទាហរណ៍', 'import.sample.letters': 'អក្សរប្លុក', 'import.sample.shapes': 'រូបចម្រុះ', 'import.sample.warnings': 'ឯកសារមានបញ្ហា',
   'import.progress': 'កំពុងអាន {name}… ({done}/{total})', 'import.failed': 'នាំចូលមិនបាន',
 
-  'designs.empty': 'មិនទាន់មានរូបទេ។ សូមនាំចូល SVG នៅជំហានទី ១។', 'designs.pieces': '{n} ដុំ', 'designs.contours': '{n} ខ្សែកាត់', 'designs.size': '{w} × {h} cm',
+  'designs.empty': 'មិនទាន់មានរូបទេ។ សូមនាំចូលឯកសារ SVG ខាងលើ ឬវាយអក្សរនៅទំព័រអក្សរខ្មែរ។', 'designs.pieces': '{n} ដុំ', 'designs.contours': '{n} ខ្សែកាត់', 'designs.size': '{w} × {h} cm',
   'designs.qty': 'ចំនួនច្បាប់', 'designs.more': 'បន្ថែមមួយច្បាប់', 'designs.less': 'បន្ថយមួយច្បាប់', 'designs.remove': 'ដក {name} ចេញ',
   'designs.report': 'របាយការណ៍នាំចូល', 'designs.check': 'ត្រូវកែ', 'designs.fixed': 'រក្សាទិសដើម មិនបង្វិល', 'designs.total': 'សរុប {n} ដុំ',
 
@@ -183,11 +186,11 @@ const km: Record<Key, string> = {
   'canvas.fit': 'បង្ហាញពេញផ្ទាំង', 'canvas.zoomIn': 'ពង្រីក', 'canvas.zoomOut': 'បង្រួម', 'canvas.layers': 'ស្រទាប់', 'canvas.sheetOf': 'សន្លឹក {n} / {total}', 'canvas.prev': 'សន្លឹកមុន', 'canvas.next': 'សន្លឹកបន្ទាប់',
   'layer.designs': 'រូប', 'layer.toolpath': 'ផ្លូវលួស', 'layer.bridges': 'ខ្សែភ្ជាប់', 'layer.zones': 'កែងទុកទំនេរ', 'layer.start': 'ចំណុចចាប់ផ្តើម', 'layer.grid': 'ក្រឡាចត្រង្គ', 'layer.order': 'លំដាប់កាត់',
   'canvas.empty.title': 'រៀបអក្សរស្នោ ហើយកាត់ជាមួយ Mach3', 'canvas.empty.body': 'នាំចូលឯកសារ SVG ពី CorelDRAW។ កម្មវិធីរៀបវាលើសន្លឹកស្នោ ភ្ជាប់ជាខ្សែលួសតែមួយ ហើយបង្កើតឯកសារ TAP។ អ្វីៗដំណើរការក្នុងកម្មវិធីរុករករបស់អ្នក។',
-  'canvas.preview': 'ប្លង់សន្លឹកស្នោ {w} × {h} mm', 'canvas.noLayout': 'សូមរៀបស្នោនៅជំហានទី ៤ ដើម្បីមើលសន្លឹក។',
+  'canvas.preview': 'ប្លង់សន្លឹកស្នោ {w} × {h} mm', 'canvas.noLayout': 'រូបរួចរាល់ហើយ។ សូមបង្កើតប្លង់នៅទំព័ររៀបស្នោ ដើម្បីដាក់វាលើសន្លឹក។',
   'play.play': 'ចាក់', 'play.pause': 'ផ្អាក', 'play.speed': 'ល្បឿន', 'play.position': 'ទីតាំងលួស', 'play.note': 'បង្ហាញទិន្នន័យផ្លូវកាត់ប៉ុណ្ណោះ មិនមែនការក្លែងធ្វើម៉ាស៊ីនទេ។', 'play.toStart': 'ត្រឡប់ទៅដើម',
 
   'props.title': 'លក្ខណៈ', 'props.piece': 'ដុំ', 'props.design': 'រូប', 'props.copy': 'ច្បាប់', 'props.x': 'X (mm)', 'props.y': 'Y (mm)', 'props.w': 'ទទឹង', 'props.h': 'កម្ពស់', 'props.rotation': 'បង្វិល (°)',
-  'props.rotate90': 'បង្វិល 90°', 'props.area': 'ផ្ទៃក្រឡា', 'props.outers': 'ខ្សែក្រៅ', 'props.holes': 'រន្ធ', 'props.points': 'ចំណុច', 'props.moveSheet': 'ផ្លាស់ទៅសន្លឹក', 'props.manualOnly': 'ជ្រើស “កែទីតាំងដោយដៃ” នៅជំហានទី ៤ ដើម្បីប្ដូរទីតាំង។',
+  'props.rotate90': 'បង្វិល 90°', 'props.area': 'ផ្ទៃក្រឡា', 'props.outers': 'ខ្សែក្រៅ', 'props.holes': 'រន្ធ', 'props.points': 'ចំណុច', 'props.moveSheet': 'ផ្លាស់ទៅសន្លឹក', 'props.manualOnly': 'ជ្រើស «កែទីតាំងដោយដៃ» នៅទំព័ររៀបស្នោ ដើម្បីប្ដូរទីតាំង។',
   'props.none': 'ជ្រើសដុំស្នោលើផ្ទាំង។', 'props.sheet': 'សន្លឹកនេះ', 'props.job': 'ប្លង់នេះ', 'props.sheets': 'សន្លឹក', 'props.pieces': 'ដុំ', 'props.usedArea': 'ផ្ទៃប្រើ', 'props.utilization': 'ប្រើស្នោ', 'props.waste': 'ខ្ជះខ្ជាយ',
   'props.cut': 'ប្រវែងកាត់', 'props.leftover': 'បន្ទះសល់', 'props.deselect': 'ដកការជ្រើស',
 
@@ -199,9 +202,9 @@ const km: Record<Key, string> = {
   'settings.clear': 'លុបគម្រោង និងប្រវត្តិរូបទាំងអស់', 'settings.clearConfirm': 'លុបគម្រោង និងប្រវត្តិរូបម៉ាស៊ីនទាំងអស់ក្នុងកម្មវិធីរុករកនេះឬ? មិនអាចយកមកវិញបានទេ។', 'settings.cleared': 'បានលុបទិន្នន័យហើយ។',
   'settings.privacy': 'មិនត្រូវការគណនី មិនបញ្ជូនឯកសារទេ។ ការគណនាទាំងអស់ដំណើរការក្នុងកម្មវិធីរុករករបស់អ្នក។', 'common.close': 'បិទ', 'common.cancel': 'បោះបង់',
 
-  'help.title': 'របៀបប្រើ', 'help.flow': 'ធ្វើតាមជំហានទី ១ ដល់ទី ៨ នៅខាងឆ្វេង។', 'help.h1': 'រៀបចំឯកសារ', 'help.b1': 'ក្នុង CorelDRAW សូម Convert to Curves ហើយនាំចេញ SVG។ សូម Weld អក្សរដែលប៉ះគ្នា។',
-  'help.h2': 'កែងគៀបស្នោ', 'help.b2': 'ជំហានទី ៣ ទុកកែងទំនេរ ដើម្បីកុំឱ្យក្បាលបុកឧបករណ៍គៀប។ គ្មានអក្សរ ឬផ្លូវលួសចូលកែងនោះទេ។',
-  'help.h3': 'គ្រាប់ចុច', 'help.b3': 'Ctrl+Z ថយក្រោយ, Ctrl+Y ទៅមុខវិញ, Ctrl+S រក្សាទុក។ លើផ្ទាំង៖ រំកិលកង់កណ្ដុរដើម្បីពង្រីក អូសដើម្បីផ្លាស់ទី។ ពេលកែដោយដៃ៖ ព្រួញរំកិល 1 mm, R បង្វិល 90°, Esc ដកការជ្រើស។',
+  'help.title': 'របៀបប្រើ', 'help.flow': 'ធ្វើតាមទំព័រក្នុងម៉ឺនុយខាងឆ្វេង៖ នាំចូល ឬវាយរូប រៀបស្នោ ពិនិត្យម៉ាស៊ីន និងផ្លូវកាត់ រួចនាំចេញ។ ទំព័រដើមបង្ហាញវឌ្ឍនភាពការងារ។', 'help.h1': 'រៀបចំឯកសារ', 'help.b1': 'ក្នុង CorelDRAW សូម Convert to Curves ហើយនាំចេញ SVG។ សូម Weld អក្សរដែលប៉ះគ្នា។',
+  'help.h2': 'កែងគៀបស្នោ', 'help.b2': 'ការរៀបស្នោទុកកែងទំនេរ ដើម្បីកុំឱ្យក្បាលបុកឧបករណ៍គៀប។ គ្មានអក្សរ ឬផ្លូវលួសចូលកែងនោះទេ។',
+  'help.h3': 'គ្រាប់ចុច', 'help.b3': 'Ctrl+Z ថយក្រោយ, Ctrl+Y ទៅមុខវិញ, Ctrl+S រក្សាទុក។ លើផ្ទាំង៖ រំកិលកង់កណ្ដុរ ឬច្បិចដើម្បីពង្រីក អូសដើម្បីផ្លាស់ទី Shift+អូស ឬឧបករណ៍ប្រអប់ដើម្បីជ្រើសមួយតំបន់ Shift+ចុចដើម្បីជ្រើសបន្ថែម Ctrl+A ដើម្បីជ្រើសទាំងសន្លឹក។ ពេលកែដោយដៃ៖ ព្រួញរំកិល 1 mm (Shift៖ 10 mm), R បង្វិល 90°, Esc ដកការជ្រើស។',
   'help.h4': 'សុវត្ថិភាព', 'help.b4': 'កម្មវិធីនេះមិនទាន់បានសាកលើម៉ាស៊ីនរបស់អ្នកទេ។ សូមពិនិត្យឯកសារ TAP រាល់ដងក្នុង Mach3 សាកដំណើរការទទេដោយលួសមិនក្ដៅ ហើយនៅជាប់ម៉ាស៊ីន។ លួសក្ដៅ និងផ្សែងស្នោជាការទទួលខុសត្រូវរបស់អ្នកបញ្ជា។',
   'help.h5': 'ទិន្នន័យរបស់អ្នក', 'help.b5': 'ឯកសារត្រូវបានអានក្នុងកម្មវិធីរុករក មិនបញ្ជូនទៅណាទេ។ គម្រោងរក្សាទុកនៅក្នុងឧបករណ៍នេះ។',
 

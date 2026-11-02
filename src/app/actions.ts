@@ -8,7 +8,7 @@ import { cleanBaseName, saveFile, sheetFileName, tapDate } from '../services/dow
 import { JobCancelled, startJob, type RunningJob } from '../services/engine-client';
 import { toProjectFile } from '../services/project-io';
 import { activeLayout, activeProfile, commit, flushSave, loadInto, projectStore } from '../stores/project-store';
-import { toast, uiStore } from '../stores/ui-store';
+import { go, toast, uiStore } from '../stores/ui-store';
 import type { Layout } from '../types/project';
 import { tr } from './i18n';
 
@@ -43,7 +43,7 @@ export async function addFiles(list: File[]): Promise<void> {
   }
   running = null;
   uiStore.patch({ job: null, failures });
-  if (added) { uiStore.patch({ step: 2 }); toast(tr('toast.imported', { n: added })); }
+  if (added) { if (uiStore.get().section !== 'import') go('import'); toast(tr('toast.imported', { n: added })); }
 }
 
 export async function addSample(file: string): Promise<void> {
@@ -68,7 +68,7 @@ function addLayout(layout: Layout) {
     const layouts = [...p.layouts, layout].slice(-MAX_LAYOUTS);
     return { ...p, layouts, activeLayoutId: layout.id };
   });
-  uiStore.patch({ sheet: 0, selected: null, step: 7 });
+  uiStore.patch({ sheet: 0, selected: [], highlightRow: null });
 }
 
 /** Runs the chosen mode. Manual mode starts from automatic nesting, then the operator moves pieces. */
@@ -192,6 +192,7 @@ export async function createProject(): Promise<void> {
   await flushSave();
   const n = newProject(tr('project.defaultName'));
   loadInto(n);
-  uiStore.patch({ step: 1, selected: null, sheet: 0, failures: [], toolpathKey: null });
+  uiStore.patch({ selected: [], sheet: 0, failures: [], toolpathKey: null });
+  go('import');
   await flushSave();
 }

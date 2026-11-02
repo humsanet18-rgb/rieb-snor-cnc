@@ -1,6 +1,7 @@
 import { cancelJob, generate } from '../../app/actions';
-import { useT } from '../../app/i18n';
-import { Check, IconButton, NumberField, SelectField } from '../../components/ui';
+import { tr, useT } from '../../app/i18n';
+import { Check, IconButton, NumberField, PanelCard, SelectField } from '../../components/ui';
+import { ask } from '../../stores/confirm-store';
 import { activeLayout, commit, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
 import { uiStore } from '../../stores/ui-store';
@@ -33,6 +34,7 @@ export function NestPanel() {
   const setRows = (part: Partial<RowSettings>) => setSettings(x => ({ ...x, rows: { ...x.rows, ...part } }));
   return (
     <>
+    <PanelCard title={t('card.arrange')} icon="nest">
       <div className="segmented" role="radiogroup" aria-label={t('nest.mode')}>
         {(['auto', 'keep', 'manual'] as NestMode[]).map(m => (
           <label key={m} className={s.mode === m ? 'on' : ''}>
@@ -57,10 +59,10 @@ export function NestPanel() {
       {rows && <p className="hint">{t('nest.rowsHint')}</p>}
       {auto && (
         <div className="fields">
-          <NumberField label={t('nest.gap')} value={s.gap} min={0} max={200} testId="gap" onChange={v => { if (v !== null) setSettings(x => ({ ...x, gap: v })); }} />
+          <NumberField label={t('nest.gap')} value={s.gap} min={0} max={200} testId="gap" tip={t('tip.gap')} onChange={v => { if (v !== null) setSettings(x => ({ ...x, gap: v })); }} />
           {rows ? (
             <>
-              <NumberField label={t('nest.tolerance')} value={s.rows.tolerance} min={0} max={1000} testId="row-tolerance" onChange={v => { if (v !== null) setRows({ tolerance: v }); }} />
+              <NumberField label={t('nest.tolerance')} value={s.rows.tolerance} min={0} max={1000} testId="row-tolerance" tip={t('tip.tolerance')} onChange={v => { if (v !== null) setRows({ tolerance: v }); }} />
               <SelectField label={t('nest.align')} value={s.rows.align} testId="row-align" onChange={align => setRows({ align })}
                 options={[{ value: 'bottom', label: t('nest.align.bottom') }, { value: 'top', label: t('nest.align.top') }, { value: 'center', label: t('nest.align.center') }]} />
               <SelectField label={t('nest.rowOrder')} value={s.rows.order} testId="row-order" onChange={order => setRows({ order })}
@@ -86,7 +88,7 @@ export function NestPanel() {
       )}
       {nesting ? (
         <div className="running" role="status">
-          <div className="bar"><i style={{ width: `${Math.round(job.progress * 100)}%` }} /></div>
+          <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(job.progress * 100)}><i style={{ width: `${Math.round(job.progress * 100)}%` }} /></div>
           <p data-testid="nest-status">{job.stage === 'fine' ? t('nest.tightening') : t('nest.searching', { sheets: job.sheets, pass: job.pass })}</p>
           <button type="button" className="btn" onClick={cancelJob} data-testid="cancel">{t('nest.cancel')}</button>
         </div>
@@ -97,21 +99,24 @@ export function NestPanel() {
       )}
       {layoutOutdated(project, layout) && <p className="notice warn" data-testid="stale">{t('nest.stale')}</p>}
       {layout && layout.unplaced.length > 0 && <p className="notice bad" data-testid="unplaced">{t('nest.unplaced', { n: layout.unplaced.length })}</p>}
-      {project.layouts.length > 0 && <LayoutTable project={project} />}
+    </PanelCard>
+    {project.layouts.length > 0 && <PanelCard title={t('card.layouts')} icon="layers"><LayoutTable project={project} /></PanelCard>}
     </>
   );
 }
 
 function LayoutTable({ project }: { project: Project }) {
   const { t } = useT();
-  const select = (id: string) => { commit(p => ({ ...p, activeLayoutId: id })); uiStore.patch({ sheet: 0, selected: null }); };
-  const remove = (id: string) => commit(p => {
-    const layouts = p.layouts.filter(l => l.id !== id);
-    return { ...p, layouts, activeLayoutId: p.activeLayoutId === id ? layouts[layouts.length - 1]?.id ?? null : p.activeLayoutId };
-  });
+  const select = (id: string) => { commit(p => ({ ...p, activeLayoutId: id })); uiStore.patch({ sheet: 0, selected: [], highlightRow: null }); };
+  const remove = async (id: string, n: number) => {
+    if (!await ask({ title: tr('confirm.deleteLayout'), body: tr('confirm.deleteLayout.body', { n }), action: tr('confirm.delete'), danger: true })) return;
+    commit(p => {
+      const layouts = p.layouts.filter(l => l.id !== id);
+      return { ...p, layouts, activeLayoutId: p.activeLayoutId === id ? layouts[layouts.length - 1]?.id ?? null : p.activeLayoutId };
+    });
+  };
   return (
     <>
-      <h3 className="sub">{t('nest.layouts')}</h3>
       <table className="compare" data-testid="layouts">
         <thead>
           <tr><th scope="col">#</th><th scope="col">{t('nest.col.sheets')}</th><th scope="col">{t('nest.col.util')}</th><th /></tr>
@@ -124,7 +129,7 @@ function LayoutTable({ project }: { project: Project }) {
                 <td><button type="button" className="link" aria-pressed={on} aria-label={t('nest.use')} onClick={() => select(l.id)}>{l.number}</button></td>
                 <td>{st.sheets}</td>
                 <td>{(st.utilization * 100).toFixed(1)}%</td>
-                <td><IconButton icon="trash" label={t('nest.remove', { n: l.number })} onClick={() => remove(l.id)} /></td>
+                <td><IconButton icon="trash" label={t('nest.remove', { n: l.number })} onClick={() => void remove(l.id, l.number)} /></td>
               </tr>
             );
           })}

@@ -1,6 +1,7 @@
 import { removeDesign } from '../../app/actions';
-import { useT } from '../../app/i18n';
+import { tr, useT } from '../../app/i18n';
 import { Check, IconButton } from '../../components/ui';
+import { ask } from '../../stores/confirm-store';
 import { needsCorrection } from '../../engines/svg-parser/report';
 import { commit, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
@@ -10,10 +11,14 @@ import type { Design } from '../../types/project';
 const setDesign = (id: string, fn: (d: Design) => Design) =>
   commit(p => ({ ...p, designs: p.designs.map(d => d.id === id ? fn(d) : d) }));
 
+async function confirmRemove(d: Design) {
+  if (await ask({ title: tr('confirm.removeDesign'), body: tr('confirm.removeDesign.body', { name: d.name }), action: tr('confirm.remove'), danger: true })) removeDesign(d.id);
+}
+
 export function DesignsPanel() {
   const { t } = useT();
   const designs = useStore(projectStore, s => s.project.designs);
-  if (!designs.length) return <p className="hint">{t('designs.empty')}</p>;
+  if (!designs.length) return <p className="empty-note">{t('designs.empty')}</p>;
   const total = designs.reduce((n, d) => n + d.qty * d.parts.length, 0);
   return (
     <>
@@ -24,7 +29,7 @@ export function DesignsPanel() {
               <i className={`swatch d${i % 6}`} aria-hidden="true" />
               <span className="design-name" title={d.name}>{d.name}</span>
               <IconButton icon="report" label={t('designs.report')} onClick={() => uiStore.patch({ dialog: { report: d.id } })} />
-              <IconButton icon="trash" label={t('designs.remove', { name: d.name })} onClick={() => removeDesign(d.id)} />
+              <IconButton icon="trash" label={t('designs.remove', { name: d.name })} onClick={() => void confirmRemove(d)} />
             </div>
             <div className="design-sub">
               {t('designs.pieces', { n: d.parts.length })} · {t('designs.contours', { n: d.report.stats.contours })} · {t('designs.size', { w: (d.report.stats.width / 10).toFixed(1), h: (d.report.stats.height / 10).toFixed(1) })}

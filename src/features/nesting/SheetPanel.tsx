@@ -12,21 +12,29 @@ const num = (fn: (s: Settings, v: number) => Settings) => (v: number | null) => 
 export function SheetPanel() {
   const { t } = useT();
   const s = useStore(projectStore, st => st.project.settings);
-  const c = s.corners;
   return (
     <div className="fields">
       <NumberField label={t('sheet.width')} value={s.sheetW} scale={10} min={1} max={10000} onChange={num((x, v) => ({ ...x, sheetW: v }))} testId="sheet-w" />
       <NumberField label={t('sheet.height')} value={s.sheetH} scale={10} min={1} max={10000} onChange={num((x, v) => ({ ...x, sheetH: v }))} testId="sheet-h" />
-      <NumberField label={t('sheet.thickness')} value={s.thickness} min={0} max={2000} onChange={num((x, v) => ({ ...x, thickness: v }))} />
-      <NumberField label={t('sheet.margin')} value={s.margin} min={0} max={500} onChange={num((x, v) => ({ ...x, margin: v }))} testId="margin" />
-      <p className="hint wide">{t('sheet.thicknessHint')}</p>
+      <NumberField label={t('sheet.thickness')} value={s.thickness} min={0} max={2000} onChange={num((x, v) => ({ ...x, thickness: v }))} tip={t('sheet.thicknessHint')} />
+      <NumberField label={t('sheet.margin')} value={s.margin} min={0} max={500} onChange={num((x, v) => ({ ...x, margin: v }))} testId="margin" tip={t('tip.margin')} />
+    </div>
+  );
+}
+
+export function ClampPanel() {
+  const { t } = useT();
+  const s = useStore(projectStore, st => st.project.settings);
+  const c = s.corners;
+  return (
+    <div className="fields">
       <SelectField<CornerMode> label={t('sheet.corners')} value={c.mode} testId="corners"
         onChange={mode => setSettings(x => ({ ...x, corners: { ...x.corners, mode } }))}
         options={[
           { value: 'bottom', label: t('sheet.corners.bottom') }, { value: 'top', label: t('sheet.corners.top') },
           { value: 'all', label: t('sheet.corners.all') }, { value: 'none', label: t('sheet.corners.none') }
         ]} />
-      {(c.mode === 'top' || c.mode === 'all') && <p className="hint wide">{t('sheet.topHint')}</p>}
+      {(c.mode === 'top' || c.mode === 'all') && <p className="notice warn wide">{t('sheet.topHint')}</p>}
       {c.mode !== 'none' && (
         <>
           <NumberField label={t('sheet.leftW')} value={c.leftW} scale={10} step={0.5} min={0} max={1000} onChange={num((x, v) => ({ ...x, corners: { ...x.corners, leftW: v } }))} />

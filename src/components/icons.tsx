@@ -25,15 +25,47 @@ const PATHS = {
   report: 'M6 3h12v18H6zM9 8h6M9 12h6M9 16h4',
   copy: 'M8 8h12v12H8zM4 4h12v3M4 4v12h3',
   upload: 'M12 16V5M7 10l5-5 5 5M4 19h16',
+  download: 'M12 4v11M7 10l5 5 5-5M4 20h16',
   check: 'M5 13l4 4 10-11',
-  warn: 'M12 4l9 16H3zM12 10v5M12 17.5v.5'
+  warn: 'M12 4l9 16H3zM12 10v5M12 17.5v.5',
+  info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5v.5',
+  error: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9 9l6 6M15 9l-6 6',
+  ok: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12l3 3 5-6',
+  home: 'M3 11l9-7 9 7M5 9.5V20h5v-6h4v6h5V9.5',
+  text: 'M5 7V4h14v3M12 4v16M8.5 20h7',
+  nest: 'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',
+  path: 'M3 17c3 0 3-10 6-10s3 10 6 10 3-6 6-6M3 17h.01M21 11h.01',
+  machine: 'M7 7h10v10H7zM10 10h4v4h-4zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4',
+  editor: 'M3 5h18v12H3zM10 8.5l4.5 2.5-4.5 2.5zM8 21h8M12 17v4',
+  history: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2',
+  shop: 'M4 9l1.5-5h13L20 9M4 9h16v11H4zM9.5 20v-6h5v6',
+  menu: 'M4 6h16M4 12h16M4 18h16',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  panelLeft: 'M4 4h16v16H4zM9 4v16',
+  panelRight: 'M4 4h16v16H4zM15 4v16',
+  pointer: 'M6 3l12 7.5-5.5 1.5L10 18z',
+  hand: 'M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7a7 7 0 0 1-7 7 6 6 0 0 1-5-2.7l-2.4-3.8a1.5 1.5 0 0 1 2.5-1.6L8 13',
+  selectAll: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M9 9h6v6H9z',
+  alignLeft: 'M4 3v18M8 7h11v4H8zM8 14h6v4H8z',
+  alignCenter: 'M12 3v18M6 7h12v4H6zM9 14h6v4H9z',
+  alignRight: 'M20 3v18M5 7h11v4H5zM10 14h6v4h-6z',
+  alignTop: 'M3 4h18M7 8h4v11H7zM14 8h4v6h-4z',
+  alignMiddle: 'M3 12h18M7 6h4v12H7zM14 9h4v6h-4z',
+  alignBottom: 'M3 20h18M7 5h4v11H7zM14 10h4v6h-4z',
+  distributeH: 'M4 3v18M20 3v18M8 7h3v10H8zM13 7h3v10h-3z',
+  distributeV: 'M3 4h18M3 20h18M7 8h10v3H7zM7 13h10v3H7z',
+  font: 'M4 20L10.5 4h1L18 20M6.5 14h9',
+  ruler: 'M3 17L17 3l4 4L7 21zM7 13l2 2M10 10l2 2M13 7l2 2',
+  arrowRight: 'M5 12h14M13 6l6 6-6 6',
+  send: 'M4 12l16-8-5 16-3-6z',
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4'
 } as const;
 
 export type IconName = keyof typeof PATHS;
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={name === 'more' ? 3 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="icon">
       <path d={PATHS[name]} />
     </svg>
   );

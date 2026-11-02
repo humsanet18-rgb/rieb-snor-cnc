@@ -4,22 +4,57 @@ import { Icon } from '../../components/icons';
 import { IconButton, NumberField, Stat } from '../../components/ui';
 import { activeLayout, activeProfile, projectStore, setLayout } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
-import { uiStore } from '../../stores/ui-store';
+import { togglePanel, uiStore } from '../../stores/ui-store';
 import type { Layout, PlacedPiece } from '../../types/project';
-import { itemBox, layoutStats, moveToSheet, partOf, placeItem, positionPiece, rotatePiece, sheetItems, updatePiece } from '../nesting/model';
+import { itemBox, layoutStats, moveToSheet, partOf, placeItem, positionPiece, rotatePiece, sheetItems, unionBox, updatePiece } from '../nesting/model';
+import { AlignTools } from './AlignTools';
 
 export function PropertiesPanel() {
   const { t } = useT();
   const project = useStore(projectStore, s => s.project);
   const selected = useStore(uiStore, s => s.selected);
   const layout = activeLayout(project);
-  const piece = layout?.sheets.flatMap(s => s.pieces).find(p => p.key === selected);
+  const pieces = useMemo(() => {
+    const keys = new Set(selected);
+    return layout?.sheets.flatMap(s => s.pieces).filter(p => keys.has(p.key)) ?? [];
+  }, [layout, selected]);
   return (
-    <aside className="props" aria-label={t('props.title')}>
-      <h2>{t('props.title')}</h2>
-      {layout && piece ? <PieceProps layout={layout} piece={piece} /> : <p className="hint">{t('props.none')}</p>}
-      {layout && <SheetSummary layout={layout} />}
+    <aside className="side right props" aria-label={t('props.title')} data-testid="props">
+      <header className="side-head compact">
+        <h2>{t('props.title')}</h2>
+        <IconButton icon="panelRight" label={t('panel.hideProps')} onClick={() => togglePanel('right')} testId="hide-props" />
+      </header>
+      <div className="side-body">
+        {layout && pieces.length === 1 ? <PieceProps layout={layout} piece={pieces[0]} />
+          : layout && pieces.length > 1 ? <MultiProps layout={layout} pieces={pieces} />
+          : <p className="empty-note">{t('props.none')} <small>{t('props.selectHint')}</small></p>}
+        {layout && <SheetSummary layout={layout} />}
+      </div>
     </aside>
+  );
+}
+
+function MultiProps({ layout, pieces }: { layout: Layout; pieces: PlacedPiece[] }) {
+  const { t } = useT();
+  const project = useStore(projectStore, s => s.project);
+  const box = useMemo(() => unionBox(pieces.flatMap(p => { const part = partOf(project.designs, p); return part ? [placeItem(part, p)] : []; })), [pieces, project.designs]);
+  const manual = project.settings.mode === 'manual' && layout.mode !== 'keep';
+  return (
+    <div className="prop-group" data-testid="multi-props">
+      <div className="prop-title">
+        <b>{t('props.multi', { n: pieces.length })}</b>
+        <IconButton icon="close" label={t('props.deselect')} onClick={() => uiStore.patch({ selected: [] })} />
+      </div>
+      {box && (
+        <dl className="stats">
+          <Stat label={t('props.x')} value={box.x0.toFixed(1)} />
+          <Stat label={t('props.y')} value={box.y0.toFixed(1)} />
+          <Stat label={t('props.w')} value={`${(box.x1 - box.x0).toFixed(1)} mm`} testId="sel-w" />
+          <Stat label={t('props.h')} value={`${(box.y1 - box.y0).toFixed(1)} mm`} testId="sel-h" />
+        </dl>
+      )}
+      {manual ? <AlignTools /> : <p className="hint">{t('props.alignManual')}</p>}
+    </div>
   );
 }
 
@@ -34,10 +69,10 @@ function PieceProps({ layout, piece }: { layout: Layout; piece: PlacedPiece }) {
   const sheetOf = layout.sheets.findIndex(s => s.pieces.some(p => p.key === piece.key));
   const points = [...part.outers, ...part.holes].reduce((s, c) => s + c.length, 0);
   return (
-    <div data-testid="piece-props">
+    <div className="prop-group" data-testid="piece-props">
       <div className="prop-title">
         <b title={design.name}>{design.name}</b>
-        <IconButton icon="close" label={t('props.deselect')} onClick={() => uiStore.patch({ selected: null })} />
+        <IconButton icon="close" label={t('props.deselect')} onClick={() => uiStore.patch({ selected: [] })} />
       </div>
       <div className="fields">
         <NumberField label={t('props.x')} value={+box.x0.toFixed(2)} disabled={!manual} step={0.5} testId="piece-x"
@@ -52,7 +87,7 @@ function PieceProps({ layout, piece }: { layout: Layout; piece: PlacedPiece }) {
           </div>
         )}
       </div>
-      {!manual && <p className="hint">{t('props.manualOnly')}</p>}
+      {!manual && <p className="hint">{t('props.alignManual')}</p>}
       {manual && layout.sheets.length > 1 && (
         <div className="field">
           <label htmlFor="move-sheet">{t('props.moveSheet')}</label>
@@ -98,8 +133,7 @@ function SheetSummary({ layout }: { layout: Layout }) {
   }, [sheet, layout, project.designs]);
   return (
     <>
-      <h3 className="sub">{t('props.job')}</h3>
-      <p className="best-label"><b>{t('nest.best')}</b> #{layout.number}</p>
+      <h3 className="mini-head">{t('props.job')} <span className="best-label">{t('nest.best')} #{layout.number}</span></h3>
       <dl className="stats" data-testid="layout-stats">
         <Stat label={t('props.sheets')} value={stats.sheets} testId="stat-sheets" />
         <Stat label={t('props.pieces')} value={stats.pieces} testId="stat-pieces" />
@@ -110,7 +144,7 @@ function SheetSummary({ layout }: { layout: Layout }) {
       </dl>
       {sheet && sp && (
         <>
-          <h3 className="sub">{t('props.sheet')} {index + 1}</h3>
+          <h3 className="mini-head">{t('props.sheet')} {index + 1}</h3>
           <dl className="stats">
             <Stat label={t('props.pieces')} value={sheet.pieces.length} />
             <Stat label={t('path.length')} value={`${(sp.length / 1000).toFixed(2)} ${t('unit.m')}`} />

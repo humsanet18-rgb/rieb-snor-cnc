@@ -48,7 +48,7 @@ npm run dev
 
 Then open `http://localhost:5173`. Details are in the [installation guide](docs/INSTALL.md).
 
-Sample files are in `public/samples/`, and the app has buttons for them in step 1. All are synthetic.
+Sample files are in `public/samples/`, and the app has buttons for them on Home and in SVG Import. All are synthetic.
 
 ## Documents
 

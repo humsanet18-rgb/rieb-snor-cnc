@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { goTo } from './nav';
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -12,8 +13,8 @@ async function start(page: Page) {
   await page.goto('/');
   await expect(page.getByTestId('app')).toBeVisible();
   await page.getByTestId('lang').click();
-  await expect(page.getByTestId('step-1')).toContainText('Import SVG');
-  await page.getByTestId('view-shop').click();
+  await expect(page.getByTestId('home')).toBeVisible();
+  await goTo(page, 'shop');
   await expect(page.getByTestId('shop')).toBeVisible();
   await expect(page.getByTestId('shop-welcome')).toBeVisible();
 }
@@ -123,7 +124,7 @@ test('a job runs from customer to report and survives a reload', async ({ page }
 
   await page.waitForTimeout(100);
   await page.reload();
-  await page.getByTestId('view-shop').click();
+  await goTo(page, 'shop');
   await expect(page.getByTestId('dash-owed')).toHaveText('$15.00');
   expect(errors).toEqual([]);
 });
@@ -236,13 +237,13 @@ test('mistakes can be corrected: queue, payment, stock count and customer', asyn
 
 test('an order links to a cutting project and opens it', async ({ page }) => {
   await start(page);
-  await page.getByTestId('view-work').click();
+  await goTo(page, 'import');
   await page.getByTestId('project-name').fill('Linked job');
   await expect(page.getByTestId('save-state')).toHaveText('Saved on this device', { timeout: 10_000 });
   await page.getByTestId('nav-new').click();
   await expect(page.getByTestId('project-name')).not.toHaveValue('Linked job');
   await expect(page.getByTestId('save-state')).toHaveText('Saved on this device', { timeout: 10_000 });
-  await page.getByTestId('view-shop').click();
+  await goTo(page, 'shop');
   await addCustomer(page, 'Dara', '011');
   await tab(page, 'orders');
   await page.getByTestId('order-new').click();
@@ -253,7 +254,7 @@ test('an order links to a cutting project and opens it', async ({ page }) => {
   await page.getByTestId('order-form').getByRole('button', { name: 'Save' }).click();
   await page.getByTestId('open-project').click();
   await expect(page.getByTestId('project-name')).toHaveValue('Linked job');
-  await expect(page.getByTestId('step-1')).toBeVisible();
+  await expect(page.getByTestId('side-panel')).toContainText('SVG Import');
 });
 
 test('quotation and invoice PDFs download', async ({ page }) => {
@@ -310,7 +311,7 @@ test('a second tab sees changes, and a stale save is refused', async ({ page, co
   await addCustomer(page, 'First', '011');
   const other = await context.newPage();
   await other.goto('/');
-  await other.getByTestId('view-shop').click();
+  await goTo(other, 'shop');
   await other.getByTestId('shop-customers').click();
   await expect(other.getByTestId('customers-table')).toContainText('First');
   await addCustomer(page, 'Second', '012');
@@ -339,7 +340,7 @@ test('a second tab sees changes, and a stale save is refused', async ({ page, co
 
 test('the shop screen works in Khmer', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('view-shop').click();
+  await goTo(page, 'shop');
   await expect(page.getByTestId('shop-orders')).toHaveText('ការបញ្ជាទិញ');
   await page.getByTestId('shop-settings').click();
   await expect(page.getByTestId('shop-backup')).toHaveText('រក្សាឯកសារបម្រុង');
@@ -363,13 +364,15 @@ for (const [width, height] of [[360, 740], [390, 844], [768, 1024], [1024, 768],
       });
       expect(over, where).toEqual({ wide: 0, cut: [] });
     };
+    await fits('home');
+    await goTo(page, 'nest');
     await fits('work');
     await page.getByTestId('layers').click();
     await fits('layer menu');
     await page.getByTestId('layers').click();
-    await page.getByTestId('view-editor').click();
+    await goTo(page, 'editor');
     await fits('editor');
-    await page.getByTestId('view-shop').click();
+    await goTo(page, 'shop');
     await addCustomer(page, 'A long customer name for a narrow phone screen', '012345678');
     await addOrder(page, 'A long customer name for a narrow phone screen', 'A very long job name that has to wrap on a phone', '1234.50');
     await fits('order detail');

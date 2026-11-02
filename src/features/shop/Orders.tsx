@@ -6,7 +6,7 @@ import { readProject } from '../../services/project-io';
 import { activeProfile, flushSave, loadInto, projectStore } from '../../stores/project-store';
 import { changeShop, shopStore } from '../../stores/shop-store';
 import { useStore } from '../../stores/store';
-import { toast, uiStore } from '../../stores/ui-store';
+import { go, toast, uiStore } from '../../stores/ui-store';
 import type { OrderItem, OrderStatus, PaymentMethod, ShopData, ShopOrder } from '../../types/shop';
 import { newId } from '../nesting/model';
 import { CustomerForm } from './Customers';
@@ -180,7 +180,8 @@ async function openProject(id: string) {
     if (!stored) { toast(tr('shop.project.missing'), true); return; }
     await flushSave();
     loadInto(readProject(stored));
-    uiStore.patch({ view: 'work', shopOrder: null });
+    uiStore.patch({ shopOrder: null });
+    go('import');
   } catch { toast(tr('shop.project.missing'), true); }
 }
 

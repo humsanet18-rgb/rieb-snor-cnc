@@ -30,7 +30,7 @@ export function PlaybackBar({ total }: { total: number }) {
     return () => cancelAnimationFrame(id);
   }, [playing, total, feed]);
   return (
-    <div className="playback">
+    <div className="playback" title={t('play.note')}>
       <IconButton icon="rewind" label={t('play.toStart')} onClick={() => setPlayback({ position: 0, playing: false })} />
       <IconButton icon={playing ? 'pause' : 'play'} label={playing ? t('play.pause') : t('play.play')} testId="play"
         onClick={() => setPlayback({ playing: !playing, position: position >= total ? 0 : position })} />

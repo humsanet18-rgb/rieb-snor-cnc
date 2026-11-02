@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseTap } from '../../src/engines/gcode-engine/tap';
 import { readZip } from '../../src/engines/export/zip';
+import { goTo } from './nav';
 
 const samples = join(process.cwd(), 'public', 'samples');
 const sample = (name: string) => join(samples, name);
@@ -20,24 +21,18 @@ async function start(page: Page) {
   await page.goto('/');
   await expect(page.getByTestId('app')).toBeVisible();
   await page.getByTestId('lang').click();
-  await expect(page.getByTestId('step-1')).toContainText('Import SVG');
-}
-
-async function openStep(page: Page, n: number) {
-  const head = page.getByTestId(`step-${n}`);
-  if (await head.getAttribute('aria-expanded') === 'false') await head.click();
-  await expect(head).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByTestId('home')).toBeVisible();
+  await goTo(page, 'import');
+  await expect(page.getByTestId('side-panel')).toContainText('SVG Import');
 }
 
 async function importSample(page: Page, name = 'block-letters.svg') {
   await page.getByTestId('file-input').setInputFiles(sample(name));
-  await expect(page.getByTestId('step-2')).toHaveAttribute('aria-expanded', 'true');
-  await openStep(page, 2);
   await expect(page.getByTestId('design-list')).toContainText(name.replace('.svg', ''));
 }
 
 async function generate(page: Page) {
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('seconds').selectOption('3');
   await page.getByTestId('generate').click();
   await expect(page.getByTestId('stat-sheets')).toBeVisible({ timeout: 30_000 });
@@ -50,10 +45,10 @@ test('imports, nests, validates and exports real files', async ({ page }) => {
   await importSample(page);
   await generate(page);
   await expect(page.getByTestId('stat-pieces')).toHaveText('11');
-  await openStep(page, 7);
+  await goTo(page, 'path');
   await expect(page.getByTestId('review-summary')).toContainText('No errors');
 
-  await openStep(page, 8);
+  await goTo(page, 'export');
   await expect(page.getByTestId('tap-0')).toBeDisabled();
   await expect(page.getByTestId('download-zip')).toBeDisabled();
   await page.getByTestId('confirm').check();
@@ -117,16 +112,16 @@ test('stale layouts are flagged and machine files stay blocked until reviewed ag
   await start(page);
   await importSample(page);
   await generate(page);
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('gap').fill('12');
   await page.getByTestId('gap').blur();
   await expect(page.getByTestId('stale')).toBeVisible();
-  await openStep(page, 8);
+  await goTo(page, 'export');
   await page.getByTestId('confirm').check();
-  await openStep(page, 5);
+  await goTo(page, 'machine');
   await page.getByTestId('feed').fill('450');
   await page.getByTestId('feed').blur();
-  await openStep(page, 8);
+  await goTo(page, 'export');
   await expect(page.getByTestId('confirm')).not.toBeChecked();
   await expect(page.getByTestId('tap-0')).toBeDisabled();
 });
@@ -135,12 +130,12 @@ test('rejects an invalid machine profile', async ({ page }) => {
   await start(page);
   await importSample(page);
   await generate(page);
-  await openStep(page, 5);
+  await goTo(page, 'machine');
   await page.getByTestId('feed').fill('0');
   await page.getByTestId('feed').blur();
-  await openStep(page, 7);
+  await goTo(page, 'path');
   await expect(page.locator('[data-code="profile-feed"]')).toBeVisible();
-  await openStep(page, 8);
+  await goTo(page, 'export');
   await expect(page.getByTestId('tap-0')).toBeDisabled();
   await expect(page.getByTestId('confirm')).toHaveCount(0);
 });
@@ -158,8 +153,10 @@ test('restores the project after a reload and survives undo', async ({ page }) =
   await expect(page.getByTestId('save-state')).toContainText('Saved', { timeout: 5000 });
   await page.reload();
   await expect(page.getByTestId('project-name')).toHaveValue('Shop order 12');
+  await expect(page.getByTestId('home')).toContainText('Shop order 12');
+  await page.getByTestId('home-continue').click();
   await expect(page.getByTestId('stat-pieces')).toHaveText('22');
-  await openStep(page, 2);
+  await goTo(page, 'import');
   await expect(page.getByTestId('qty-0')).toHaveText('2');
 });
 
@@ -167,7 +164,7 @@ test('project backup restores in a clean browser and bad backups are refused', a
   await start(page);
   await importSample(page);
   await generate(page);
-  await openStep(page, 8);
+  await goTo(page, 'export');
   const [json] = await Promise.all([page.waitForEvent('download'), page.getByTestId('download-project').click()]);
   const path = (await json.path())!;
   const context = await browser.newContext({ baseURL: test.info().project.use.baseURL });
@@ -198,14 +195,14 @@ test('a damaged file gives a clear error and adds nothing', async ({ page }) => 
   await start(page);
   await page.getByTestId('file-input').setInputFiles({ name: 'broken.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('this is not svg at all') });
   await expect(page.getByTestId('import-failures')).toContainText('broken.svg');
-  await openStep(page, 2);
+  await goTo(page, 'import');
   await expect(page.getByTestId('design-list')).toHaveCount(0);
 });
 
 test('cancelling stops a long search', async ({ page }) => {
   await start(page);
   await importSample(page);
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('seconds').selectOption('60');
   await page.getByTestId('generate').click();
   await expect(page.getByTestId('cancel')).toBeVisible();
@@ -217,7 +214,7 @@ test('cancelling stops a long search', async ({ page }) => {
 test('keep-position mode cuts each file where it was drawn', async ({ page }) => {
   await start(page);
   await page.getByTestId('file-input').setInputFiles([sample('block-letters.svg'), sample('mixed-shapes.svg')]);
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('mode-keep').check();
   await page.getByTestId('generate').click();
   await expect(page.getByTestId('stat-sheets')).toHaveText('2', { timeout: 20_000 });
@@ -229,7 +226,7 @@ test('keep-position mode cuts each file where it was drawn', async ({ page }) =>
 test('manual mode moves a piece by dragging and undo restores it', async ({ page }) => {
   await start(page);
   await importSample(page);
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('mode-manual').check();
   await generate(page);
   await page.getByTestId('layers').click();
@@ -256,7 +253,7 @@ test('manual mode moves a piece by dragging and undo restores it', async ({ page
 
 test('language and theme persist, Khmer renders, no broken layout at tablet width', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByTestId('step-1')).toContainText('នាំចូល');
+  await expect(page.getByTestId('nav-import')).toContainText('នាំចូល');
   await page.getByTestId('theme').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.reload();
@@ -277,7 +274,7 @@ test('works offline after the first visit', async ({ page, context }) => {
   await expect(page.getByTestId('app')).toBeVisible();
   await page.getByTestId('lang').click();
   await page.getByTestId('file-input').setInputFiles(sample('block-letters.svg'));
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('seconds').selectOption('3');
   await page.getByTestId('generate').click();
   await expect(page.getByTestId('stat-sheets')).toBeVisible({ timeout: 30_000 });
@@ -287,12 +284,12 @@ test('works offline after the first visit', async ({ page, context }) => {
 test('the editor plays the path in step with the G-code', async ({ page }) => {
   const errors = watchErrors(page);
   await start(page);
-  await page.getByTestId('view-editor').click();
+  await page.getByTestId('nav-editor').click();
   await expect(page.getByTestId('editor-empty')).toBeVisible();
-  await page.getByTestId('view-work').click();
+  await goTo(page, 'import');
   await importSample(page);
   await generate(page);
-  await page.getByTestId('view-editor').click();
+  await page.getByTestId('nav-editor').click();
   const current = page.getByTestId('gcode-current');
   await expect(current).toContainText('N00020 G1');
   await expect(page.getByTestId('motion-piece')).toHaveText('—');
@@ -326,27 +323,26 @@ test('same-height rows are cut one row at a time and the file changes with the o
   const errors = watchErrors(page);
   await start(page);
   await importSample(page, 'mixed-shapes.svg');
-  await openStep(page, 4);
+  await goTo(page, 'nest');
   await page.getByTestId('arrange-rows').check();
   await expect(page.getByTestId('rotation')).toHaveCount(0);
   await page.getByTestId('generate').click();
   await expect(page.getByTestId('stat-sheets')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId('stat-cut')).not.toHaveText(/^0\.00/, { timeout: 30_000 });
 
-  await page.getByTestId('view-editor').click();
+  await page.getByTestId('nav-editor').click();
   await expect(page.getByTestId('cut-order')).toHaveValue('rows');
   const home = await page.getByTestId('motion').textContent();
   await page.getByTestId('return-home').uncheck();
   await expect(page.getByTestId('no-return')).toBeVisible();
   await expect(page.getByTestId('motion')).not.toHaveText(home!, { timeout: 10_000 });
-  await page.getByTestId('view-work').click();
-  await openStep(page, 7);
+  await goTo(page, 'path');
   await expect(page.getByTestId('review-summary')).toContainText('No errors');
 
   await expect(page.getByTestId('save-state')).toContainText('Saved', { timeout: 5000 });
   await page.reload();
   await expect(page.getByTestId('app')).toBeVisible();
-  await page.getByTestId('view-editor').click();
+  await page.getByTestId('nav-editor').click();
   await expect(page.getByTestId('return-home')).not.toBeChecked();
   expect(errors).toEqual([]);
 });

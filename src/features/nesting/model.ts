@@ -145,3 +145,55 @@ export function moveToSheet(l: Layout, key: string, target: number): Layout {
   }));
   return { ...l, sheets };
 }
+
+/** Applies `fn` to every piece whose key is listed, in one layout edit so one undo restores them all. */
+export function updatePieces(l: Layout, keys: string[], fn: (p: PlacedPiece) => PlacedPiece): Layout {
+  const set = new Set(keys);
+  return { ...l, sheets: l.sheets.map(s => s.pieces.some(p => set.has(p.key)) ? { ...s, pieces: s.pieces.map(p => set.has(p.key) ? fn(p) : p) } : s) };
+}
+
+export function movePieces(l: Layout, keys: string[], dx: number, dy: number): Layout {
+  return updatePieces(l, keys, p => ({ ...p, tx: +(p.tx + dx).toFixed(2), ty: +(p.ty + dy).toFixed(2) }));
+}
+
+export type AlignMode = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom' | 'distH' | 'distV';
+
+/** Lines up the selected pieces by their boxes, or spaces them evenly between the outermost two. */
+export function alignPieces(l: Layout, designs: Design[], keys: string[], mode: AlignMode): Layout {
+  const set = new Set(keys);
+  const list = l.sheets.flatMap(s => s.pieces).filter(p => set.has(p.key)).flatMap(p => {
+    const part = partOf(designs, p);
+    return part ? [{ p, part, b: itemBox(placeItem(part, p)) }] : [];
+  });
+  if (list.length < (mode === 'distH' || mode === 'distV' ? 3 : 2)) return l;
+  const u = { x0: Math.min(...list.map(i => i.b.x0)), y0: Math.min(...list.map(i => i.b.y0)), x1: Math.max(...list.map(i => i.b.x1)), y1: Math.max(...list.map(i => i.b.y1)) };
+  const target = new Map<string, [number, number]>();
+  if (mode === 'distH' || mode === 'distV') {
+    const h = mode === 'distH', size = (b: BBox) => (h ? b.x1 - b.x0 : b.y1 - b.y0);
+    const sorted = [...list].sort((a, b) => (h ? a.b.x0 - b.b.x0 : a.b.y0 - b.b.y0));
+    const space = ((h ? u.x1 - u.x0 : u.y1 - u.y0) - sorted.reduce((s, i) => s + size(i.b), 0)) / (sorted.length - 1);
+    let at = h ? u.x0 : u.y0;
+    for (const i of sorted) { target.set(i.p.key, h ? [at, i.b.y0] : [i.b.x0, at]); at += size(i.b) + space; }
+  } else {
+    for (const { p, b } of list) {
+      const w = b.x1 - b.x0, hh = b.y1 - b.y0;
+      const x = mode === 'left' ? u.x0 : mode === 'center' ? (u.x0 + u.x1 - w) / 2 : mode === 'right' ? u.x1 - w : b.x0;
+      const y = mode === 'top' ? u.y0 : mode === 'middle' ? (u.y0 + u.y1 - hh) / 2 : mode === 'bottom' ? u.y1 - hh : b.y0;
+      target.set(p.key, [x, y]);
+    }
+  }
+  const parts = new Map(list.map(i => [i.p.key, i.part]));
+  return updatePieces(l, keys, p => {
+    const at = target.get(p.key), part = parts.get(p.key);
+    if (!at || !part) return p;
+    const next = positionPiece(part, p, at[0], at[1]);
+    return { ...next, tx: +next.tx.toFixed(3), ty: +next.ty.toFixed(3) };
+  });
+}
+
+/** Box around several placed items, or null when there are none. */
+export function unionBox(items: PlacedItem[]): BBox | null {
+  if (!items.length) return null;
+  const boxes = items.map(itemBox);
+  return { x0: Math.min(...boxes.map(b => b.x0)), y0: Math.min(...boxes.map(b => b.y0)), x1: Math.max(...boxes.map(b => b.x1)), y1: Math.max(...boxes.map(b => b.y1)) };
+}

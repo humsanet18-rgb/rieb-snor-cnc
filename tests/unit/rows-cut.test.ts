@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { bboxOf, contourDistance } from '../../src/engines/geometry-engine/geometry';
 import { arrangeRows, type RowOptions } from '../../src/engines/nesting-engine/rows';
 import type { NestResult, Placement } from '../../src/engines/nesting-engine/nest';
-import { buildCut, cutGroups, retraceLength } from '../../src/engines/toolpath-engine/cut';
+import { buildCut, cutGroups, cutRows, retraceLength } from '../../src/engines/toolpath-engine/cut';
 import { buildStroke, pathLength } from '../../src/engines/toolpath-engine/stroke';
 import { nodeAt, pieceVisits } from '../../src/features/editor/motion';
 import { cumulativeLengths } from '../../src/features/preview/view';
@@ -249,6 +249,24 @@ describe('cutting order', () => {
     expect(cutGroups([ring, right, island], 'rows')).toEqual([[0, 2], [1]]);
     const items = [ring, right, island], stroke = buildCut(items, start, [], cut());
     expect(check(items, stroke).filter(i => i.severity === 'error')).toEqual([]);
+  });
+
+  it('returns the rows the stroke was built from, so the preview and the wire agree', () => {
+    const items = grid(2, 3);
+    expect(cutRows(items, 'rows')).toEqual([[0, 1, 2], [3, 4, 5]]);
+    expect(cutRows(items, 'columns')).toEqual([[0, 3], [1, 4], [2, 5]]);
+    expect(cutRows(items, 'snake')).toEqual([[0, 1, 2], [5, 4, 3]]);
+    for (const order of ['rows', 'columns', 'snake'] as const) {
+      const stroke = buildCut(items, start, [], cut({ order }));
+      expect(stroke.rows).toEqual(cutRows(items, order));
+      // The wire reaches every piece of a row before any piece of the next row.
+      const rowOf = new Map(stroke.rows!.flatMap((r, n) => r.map(i => [i, n] as const)));
+      const visited = stroke.order.map(i => rowOf.get(i)!);
+      expect(visited).toEqual([...visited].sort((a, b) => a - b));
+    }
+    expect(buildCut(items, start, [], cut({ order: 'shortest' })).rows).toBeUndefined();
+    const ring: PlacedItem = { outers: [box(40, 40, 200, 200)], holes: [box(90, 90, 100, 100)], area: 30000 };
+    expect(cutRows([ring, placed(rectPart(100, 100, 300, 300)), placed(rectPart(40, 40, 120, 120))], 'rows')).toEqual([[0, 2], [1]]);
   });
 
   it('measures lines walked twice', () => {

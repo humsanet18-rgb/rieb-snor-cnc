@@ -20,20 +20,36 @@ function bands(list: number[], boxes: BBox[], axis: 'x' | 'y'): number[][] {
   return out;
 }
 
-/** The order groups are cut in. An island stays with the letter around it: the wire can only reach it through that letter. */
-export function cutGroups(items: PlacedItem[], order: Exclude<CutOrder, 'shortest'>): number[][] {
+/** Rows (or columns) of free pieces in cutting order, plus the letter each island sits inside, or -1. */
+function plan(items: PlacedItem[], order: Exclude<CutOrder, 'shortest'>): { rows: number[][]; roots: number[] } {
   const boxes = items.map(box);
   const host = items.map((it, i) => items.findIndex((o, j) => j !== i && inside(boxes[i], boxes[j]) && o.holes.some(h => pointInPoly(it.outers[0][0], h))));
-  const free = items.map((_, i) => i).filter(i => host[i] < 0);
-  const rows = bands(free, boxes, order === 'columns' ? 'x' : 'y');
-  const groups = order === 'snake' ? rows.flatMap((r, i) => (i % 2 ? [...r].reverse() : r).map(x => [x])) : rows;
-  items.forEach((_, i) => {
-    if (host[i] < 0) return;
-    let root = host[i];
+  const roots = host.map(h => {
+    if (h < 0) return -1;
+    let root = h;
     while (host[root] >= 0) root = host[root];
-    groups.find(g => g.includes(root))?.push(i);
+    return root;
   });
+  const rows = bands(items.map((_, i) => i).filter(i => host[i] < 0), boxes, order === 'columns' ? 'x' : 'y');
+  return { rows: order === 'snake' ? rows.map((r, i) => (i % 2 ? [...r].reverse() : r)) : rows, roots };
+}
+
+/** An island stays with the letter around it: the wire can only reach it through that letter. */
+function attach(groups: number[][], roots: number[]): number[][] {
+  roots.forEach((root, i) => { if (root >= 0) groups.find(g => g.includes(root))?.push(i); });
   return groups;
+}
+
+/** The order groups are cut in. */
+export function cutGroups(items: PlacedItem[], order: Exclude<CutOrder, 'shortest'>): number[][] {
+  const { rows, roots } = plan(items, order);
+  return attach(order === 'snake' ? rows.flat().map(x => [x]) : rows, roots);
+}
+
+/** The rows or columns the wire works through, the same grouping the stroke is built from. */
+export function cutRows(items: PlacedItem[], order: Exclude<CutOrder, 'shortest'>): number[][] {
+  const { rows, roots } = plan(items, order);
+  return attach(rows, roots);
 }
 
 function clearLink(a: Point, b: Point, items: PlacedItem[], boxes: BBox[], zones: Rect[]): boolean {
@@ -105,8 +121,9 @@ function chain(groups: number[][], items: PlacedItem[], start: StartSpec, zones:
 }
 
 export function buildCut(items: PlacedItem[], start: StartSpec, zones: Rect[], cut: CutOptions): Stroke {
-  if (cut.order === 'shortest' || items.length < 2) return buildStroke(items, start, zones);
-  return chain(cutGroups(items, cut.order), items, start, zones, cut.returnHome);
+  if (cut.order === 'shortest') return buildStroke(items, start, zones);
+  if (items.length < 2) return { ...buildStroke(items, start, zones), rows: items.map((_, i) => [i]) };
+  return { ...chain(cutGroups(items, cut.order), items, start, zones, cut.returnHome), rows: cutRows(items, cut.order) };
 }
 
 /** Length of moves along a line that was already cut, where the wire removes no new foam. */

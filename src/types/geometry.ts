@@ -30,4 +30,6 @@ export interface Stroke {
   unlinked: number;
   /** Item indexes in the order the wire first reaches them. */
   order: number[];
+  /** Item indexes by row (or column) in cutting order; absent for the shortest-path order, which has no rows. */
+  rows?: number[][];
 }
