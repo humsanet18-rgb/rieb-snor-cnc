@@ -5,11 +5,13 @@ import type { ValidationCode } from '../engines/toolpath-engine/validate';
 import { shopEn, shopKm } from './i18n-shop';
 import { uiEn, uiKm } from './i18n-ui';
 import { modalEn, modalKm } from './i18n-modal';
+import { designEn, designKm } from './i18n-design';
 
 const en = {
   ...shopEn,
   ...uiEn,
   ...modalEn,
+  ...designEn,
   'app.name': 'រៀបអក្សរ CNC',
   'app.tagline': 'Foam nesting and Mach3 toolpaths',
   'nav.new': 'New', 'nav.open': 'Open', 'nav.save': 'Save', 'nav.undo': 'Undo', 'nav.redo': 'Redo',
@@ -126,6 +128,7 @@ const km: Record<Key, string> = {
   ...shopKm,
   ...uiKm,
   ...modalKm,
+  ...designKm,
   'app.name': 'រៀបអក្សរ CNC',
   'app.tagline': 'រៀបស្នោ និងបង្កើតផ្លូវកាត់សម្រាប់ Mach3',
   'nav.new': 'ថ្មី', 'nav.open': 'បើក', 'nav.save': 'រក្សាទុក', 'nav.undo': 'ថយក្រោយ', 'nav.redo': 'ទៅមុខវិញ',

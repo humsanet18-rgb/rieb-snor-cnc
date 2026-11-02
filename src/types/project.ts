@@ -1,5 +1,6 @@
 import type { FillDirection } from '../engines/nesting-engine/nest';
 import type { ImportReport } from '../engines/svg-parser/report';
+import type { VectorDocument } from '../engines/vector-engine/types';
 import type { Part, Polygon, Rect, StartSpec } from './geometry';
 
 export type NestMode = 'auto' | 'keep' | 'manual';
@@ -44,6 +45,8 @@ export interface Design {
   markers: Polygon[];
   page: { w: number; h: number };
   report: ImportReport;
+  /** Set when the design was sent from the design page; sending again replaces it. */
+  sourceKey?: string;
 }
 
 export interface MachineProfile {
@@ -93,4 +96,6 @@ export interface Project {
   layouts: Layout[];
   activeLayoutId: string | null;
   baseName: string;
+  /** The editable design page. Absent in projects made before it existed. */
+  document?: VectorDocument;
 }

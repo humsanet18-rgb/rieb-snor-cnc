@@ -9,6 +9,7 @@ import { ToolpathModal } from '../features/cutting-path/ToolpathModal';
 import { MachineModal } from '../features/machine-settings/MachineModal';
 import { GcodeModal } from '../features/export/GcodeModal';
 import { ExportModal } from '../features/export/ExportModal';
+import { DesignDialogs } from '../features/design/DesignDialogs';
 import { defaultProfile } from '../features/nesting/model';
 import { clearAll } from '../services/db';
 import { ask } from '../stores/confirm-store';
@@ -101,5 +102,6 @@ export function Dialogs() {
   if (!dialog) return null;
   // The key remounts the modal when one tool hands over to another, so each starts its own session.
   if ('tool' in dialog) return <Fragment key={dialog.tool}>{TOOL_MODALS[dialog.tool]()}</Fragment>;
+  if ('design' in dialog) return <DesignDialogs key={dialog.design} which={dialog.design} />;
   return <ReportDialog designId={dialog.report} />;
 }

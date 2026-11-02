@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Icon } from '../components/icons';
 import { ConfirmHost } from '../components/ui';
 import { ShopScreen } from '../features/shop/ShopScreen';
+import { DesignWorkspace } from '../features/design/DesignWorkspace';
 import { movePieces } from '../features/nesting/model';
 import { rotateSelection } from '../features/geometry/AlignTools';
 import { selectAllOnSheet } from '../features/preview/CanvasToolbar';
@@ -21,7 +22,8 @@ import { Workspace } from './Workspace';
 function onKey(e: KeyboardEvent) {
   const ctrl = e.ctrlKey || e.metaKey, typing = /^(INPUT|SELECT|TEXTAREA)$/.test((e.target as Element).tagName);
   if (ctrl && e.key.toLowerCase() === 's') { e.preventDefault(); void saveNow(); return; }
-  if (typing || uiStore.get().dialog || document.querySelector('dialog[open]')) return;
+  // The Design workspace has its own shortcuts.
+  if (typing || uiStore.get().dialog || document.querySelector('dialog[open]') || uiStore.get().section === 'design') return;
   if (ctrl && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
   if (ctrl && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
   const ui = uiStore.get();
@@ -53,6 +55,7 @@ function Main() {
     case 'projects': return <ProjectsPage />;
     case 'settings': return <SettingsPage />;
     case 'shop': return <ShopScreen />;
+    case 'design': return <DesignWorkspace />;
     default: return <Workspace />;
   }
 }

@@ -9,7 +9,7 @@ import type { FlowStep } from './sections';
  */
 export type ToolId =
   | 'select' | 'pan' | 'layers'
-  | 'import-svg' | 'designs' | 'text' | 'nest'
+  | 'design' | 'import-svg' | 'designs' | 'text' | 'nest'
   | 'path' | 'machine' | 'gcode' | 'simulation' | 'export'
   | 'home' | 'projects' | 'shop' | 'settings';
 
@@ -26,6 +26,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'select', icon: 'pointer', label: 'tool.select', group: 'canvas', testId: 'dock-select' },
   { id: 'pan', icon: 'hand', label: 'tool.pan', group: 'canvas', testId: 'dock-pan' },
   { id: 'layers', icon: 'layers', label: 'canvas.layers', group: 'canvas', testId: 'dock-layers' },
+  { id: 'design', icon: 'pencil', label: 'nav.section.design', group: 'design', testId: 'nav-design', section: 'design' },
   { id: 'import-svg', icon: 'upload', label: 'tool.importSvg', group: 'design', testId: 'nav-import-svg', modal: 'import' },
   { id: 'designs', icon: 'file', label: 'nav.section.import', group: 'design', testId: 'nav-import', section: 'import', flow: 'import' },
   { id: 'text', icon: 'text', label: 'nav.section.text', group: 'design', testId: 'nav-text', modal: 'text' },

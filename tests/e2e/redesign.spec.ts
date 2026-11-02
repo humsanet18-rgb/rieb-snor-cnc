@@ -121,7 +121,7 @@ test('deleting a design asks first and can be cancelled', async ({ page }) => {
 });
 
 // Docked screens and every tool window, checked with the window open over the workspace.
-const SCREENS: (Section | ModalTool)[] = ['home', 'import', 'import-svg', 'text', 'nest', 'machine', 'path', 'gcode', 'export', 'editor', 'projects', 'settings'];
+const SCREENS: (Section | ModalTool)[] = ['home', 'design', 'import', 'import-svg', 'text', 'nest', 'machine', 'path', 'gcode', 'export', 'editor', 'projects', 'settings'];
 for (const [width, height] of [[1920, 1080], [1366, 768], [1024, 768], [768, 1024], [390, 844], [360, 800]] as const) {
   test(`every section fits and keeps the canvas usable at ${width}×${height}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
@@ -135,14 +135,14 @@ for (const [width, height] of [[1920, 1080], [1366, 768], [1024, 768], [768, 102
           const limit = document.documentElement.clientWidth;
           const cut = [...document.querySelectorAll('button, input, select, textarea')].filter(e => {
             const r = e.getBoundingClientRect();
-            // Tab strips scroll sideways on narrow screens, like the shop's section bar.
-            if (!r.width || e.closest('details:not([open]), [role="tablist"]')) return false;
+            // Tab strips, toolbars and the design menu bar scroll sideways on narrow screens, like the shop's section bar.
+            if (!r.width || e.closest('details:not([open]), [role="tablist"], [data-scroll-strip], .menubar')) return false;
             return r.right > limit + 1 || r.left < -1;
           }).map(e => (e as HTMLElement).dataset.testid ?? e.textContent);
           const modal = document.querySelector('dialog.modal[open]');
           const box = modal?.getBoundingClientRect();
           if (box && (box.right > limit + 1 || box.left < -1)) cut.push('modal');
-          const canvas = modal ? null : document.querySelector('.canvas-wrap')?.getBoundingClientRect().height ?? null;
+          const canvas = modal ? null : document.querySelector('.canvas-wrap, .design-wrap')?.getBoundingClientRect().height ?? null;
           return { wide: document.documentElement.scrollWidth - limit, cut, small: canvas !== null && canvas < 150 };
         });
         expect(over, `${s} (${lang})`).toEqual({ wide: 0, cut: [], small: false });

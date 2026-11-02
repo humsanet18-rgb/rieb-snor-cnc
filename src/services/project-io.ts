@@ -1,7 +1,8 @@
 import type { ImportIssue, ImportReport } from '../engines/svg-parser/report';
 import { issueSeverity } from '../engines/svg-parser/report';
 import { defaultSettings } from '../features/nesting/model';
-import type { Part, Point, Polygon, Rect, StartSpec } from '../types/geometry';
+import type { Matrix, Part, Point, Polygon, Rect, StartSpec } from '../types/geometry';
+import type { ShapeKind, Subpath, VectorDocument, VItem, VLayer } from '../engines/vector-engine/types';
 import type { Arrange, CornerMode, CutOptions, CutOrder, Design, Layout, MachineProfile, NestMode, PlacedPiece, Project, RowSettings, Settings, SheetLayout, UnplacedPiece } from '../types/project';
 
 export const FILE_FORMAT = 'rieb-snor-project';
@@ -56,7 +57,8 @@ class Reader {
       id: str(o.id, 'design.id'), name: str(o.name, 'design.name'), qty: Math.max(1, Math.min(999, Math.floor(pos(o.qty, 'design.qty')))),
       rotation: oneOf(o.rotation, ['inherit', 'fixed'], 'design.rotation'),
       parts: arr(o.parts, 'design.parts').map(p => this.part(p)), markers: this.polygons(o.markers, 'design.markers'),
-      page: { w: pos(page.w, 'page'), h: pos(page.h, 'page') }, report: report(o.report)
+      page: { w: pos(page.w, 'page'), h: pos(page.h, 'page') }, report: report(o.report),
+      ...(o.sourceKey === undefined ? {} : { sourceKey: str(o.sourceKey, 'design.sourceKey') })
     };
   }
 }
@@ -172,8 +174,50 @@ export function readProject(v: unknown): Project {
   return {
     id: str(o.id, 'project.id'), name: str(o.name, 'project.name'), createdAt: date(o.createdAt, 'project.createdAt'), updatedAt: date(o.updatedAt, 'project.updatedAt'),
     designs, settings: readSettings(o.settings), profileId: str(o.profileId, 'project.profileId'), layouts,
-    activeLayoutId: layouts.some(l => l.id === active) ? active : null, baseName: str(o.baseName, 'project.baseName')
+    activeLayoutId: layouts.some(l => l.id === active) ? active : null, baseName: str(o.baseName, 'project.baseName'),
+    ...(o.document === undefined ? {} : { document: readDocument(o.document, r) })
   };
+}
+
+const MAX_DEPTH = 20, MAX_ITEMS = 50_000;
+const point = (v: unknown, f: string): Point => { const p = arr(v, f); return [num(p[0], f), num(p[1], f)]; };
+const color = (v: unknown, f: string): string | null => (v === null ? null : /^#[0-9a-f]{3,8}$/i.test(str(v, f)) ? v as string : bad(f));
+const KINDS: ShapeKind[] = ['path', 'rect', 'ellipse', 'polygon', 'star', 'spiral', 'grid', 'line', 'polyline', 'freehand', 'curves'];
+
+/** The design page, checked node by node with the same limits as the rest of the file. */
+export function readDocument(v: unknown, r = new Reader()): VectorDocument {
+  const o = obj(v, 'document'), page = obj(o.page, 'document.page');
+  let count = 0;
+  const item = (x: unknown, depth: number): VItem => {
+    if (++count > MAX_ITEMS || depth > MAX_DEPTH) bad('document too large');
+    const q = obj(x, 'item');
+    const base = { id: str(q.id, 'item.id'), name: str(q.name, 'item.name'), locked: bool(q.locked, 'item.locked'), hidden: bool(q.hidden, 'item.hidden') };
+    if (q.type === 'group') return { ...base, type: 'group', children: arr(q.children, 'item.children').map(c => item(c, depth + 1)) };
+    if (q.type !== 'path') bad('item.type');
+    const m = arr(q.matrix, 'item.matrix').map(n => num(n, 'item.matrix'));
+    if (m.length !== 6) bad('item.matrix');
+    const s = obj(q.style, 'item.style');
+    const subpaths: Subpath[] = arr(q.subpaths, 'item.subpaths').map(sp => {
+      const so = obj(sp, 'subpath'), nodes = arr(so.nodes, 'subpath.nodes');
+      r.points += nodes.length * 3;
+      if (r.points > MAX_POINTS) bad('too many points');
+      return {
+        closed: bool(so.closed, 'subpath.closed'),
+        nodes: nodes.map(n => { const no = obj(n, 'node'); return { p: point(no.p, 'node.p'), ...(no.i === undefined ? {} : { i: point(no.i, 'node.i') }), ...(no.o === undefined ? {} : { o: point(no.o, 'node.o') }) }; })
+      };
+    });
+    return {
+      ...base, type: 'path', kind: oneOf(q.kind, KINDS, 'item.kind'), subpaths, matrix: m as Matrix,
+      style: { fill: color(s.fill, 'style.fill'), stroke: color(s.stroke, 'style.stroke'), strokeWidth: pos(s.strokeWidth, 'style.strokeWidth') }
+    };
+  };
+  const layers: VLayer[] = arr(o.layers, 'document.layers').map(l => {
+    const lo = obj(l, 'layer');
+    return { id: str(lo.id, 'layer.id'), name: str(lo.name, 'layer.name'), visible: bool(lo.visible, 'layer.visible'), locked: bool(lo.locked, 'layer.locked'), items: arr(lo.items, 'layer.items').map(x => item(x, 0)) };
+  });
+  if (!layers.length) bad('document.layers');
+  const active = str(o.activeLayerId, 'document.activeLayerId');
+  return { version: 1, page: { w: pos(page.w, 'document.page'), h: pos(page.h, 'document.page') }, layers, activeLayerId: layers.some(l => l.id === active) ? active : layers[0].id };
 }
 
 /** Parses an untrusted backup file. Nothing from it runs; every value is type-checked and bounded. */

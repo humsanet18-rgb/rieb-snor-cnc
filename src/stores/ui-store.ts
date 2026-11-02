@@ -7,10 +7,12 @@ export type Lang = 'km' | 'en';
 export type Theme = 'light' | 'dark';
 /** Workflows that open over the workspace. Only one is ever open; they never stack. */
 export type ToolModal = 'import' | 'text' | 'nest' | 'toolpath' | 'machine' | 'gcode' | 'export';
-export type Dialog = 'help' | { report: string } | { tool: ToolModal } | null;
+/** The Design workspace's own windows. */
+export type DesignDialog = 'palette' | 'shortcuts' | 'customize';
+export type Dialog = 'help' | { report: string } | { tool: ToolModal } | { design: DesignDialog } | null;
 
 /** Every screen in the app. The work sections share the sheet canvas; the others are full pages. */
-export type Section = 'home' | 'import' | 'nest' | 'path' | 'editor' | 'projects' | 'shop' | 'settings';
+export type Section = 'home' | 'design' | 'import' | 'nest' | 'path' | 'editor' | 'projects' | 'shop' | 'settings';
 export const WORK_SECTIONS: Section[] = ['import', 'nest', 'path', 'editor'];
 
 export type CanvasTool = 'pan' | 'select';

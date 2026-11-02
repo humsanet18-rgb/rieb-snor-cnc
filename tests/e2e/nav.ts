@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
 /** Screens that stay docked beside the canvas. */
-export type Section = 'home' | 'import' | 'nest' | 'path' | 'editor' | 'projects' | 'shop' | 'settings';
+export type Section = 'home' | 'design' | 'import' | 'nest' | 'path' | 'editor' | 'projects' | 'shop' | 'settings';
 /** Tools that open in a window over the workspace. */
 export type ModalTool = 'import-svg' | 'text' | 'machine' | 'gcode' | 'export';
 
