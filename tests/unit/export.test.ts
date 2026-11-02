@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { writePdf } from '../../src/engines/export/pdf';
+import { utf16Hex, writePdf } from '../../src/engines/export/pdf';
 import { toSVG } from '../../src/engines/export/svg-export';
 import { makeZip, readZip } from '../../src/engines/export/zip';
 import { parseSvg } from '../../src/engines/svg-parser/parse-svg';
@@ -59,6 +59,16 @@ describe('PDF writer', () => {
       const at = +row.slice(0, 10);
       expect(text.slice(at, at + 12)).toMatch(new RegExp(`^${i + 1} 0 obj`));
     });
+  });
+
+  it('names the producer រៀបអក្សរ CNC as a UTF-16 string, in plain ASCII bytes', () => {
+    const bytes = writePdf([{ jpeg: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]), pixelW: 100, pixelH: 141 }], 'Job');
+    const text = new TextDecoder('latin1').decode(bytes);
+    const hex = /\/Producer <FEFF([0-9A-F]+)>/.exec(text)![1];
+    const name = String.fromCharCode(...hex.match(/.{4}/g)!.map(h => parseInt(h, 16)));
+    expect(name).toBe('រៀបអក្សរ CNC');
+    expect(text).not.toMatch(/rieb\s*snor/i);
+    expect(utf16Hex('A')).toBe('<FEFF0041>');
   });
 });
 

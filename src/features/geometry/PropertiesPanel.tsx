@@ -1,13 +1,39 @@
-import { useMemo } from 'react';
+import { useMemo, type PointerEvent } from 'react';
 import { formatDuration, useT } from '../../app/i18n';
 import { Icon } from '../../components/icons';
 import { IconButton, NumberField, Stat } from '../../components/ui';
 import { activeLayout, activeProfile, projectStore, setLayout } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
-import { togglePanel, uiStore } from '../../stores/ui-store';
+import { PROPS_WIDTH, savePrefs, togglePanel, uiStore } from '../../stores/ui-store';
 import type { Layout, PlacedPiece } from '../../types/project';
 import { itemBox, layoutStats, moveToSheet, partOf, placeItem, positionPiece, rotatePiece, sheetItems, unionBox, updatePiece } from '../nesting/model';
 import { AlignTools } from './AlignTools';
+
+/** Drag (or arrow keys) on the panel's left edge to widen it; the width is remembered. */
+function ResizeHandle() {
+  const { t } = useT();
+  const width = useStore(uiStore, s => s.propsWidth);
+  const set = (w: number) => uiStore.patch({ propsWidth: Math.round(Math.min(PROPS_WIDTH.max, Math.max(PROPS_WIDTH.min, w))) });
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const startX = e.clientX, start = width, el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    const move = (ev: globalThis.PointerEvent) => set(start + (startX - ev.clientX));
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); savePrefs(); };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  };
+  return (
+    <div className="props-resize" role="separator" aria-orientation="vertical" aria-label={t('panel.resize')} tabIndex={0}
+      aria-valuemin={PROPS_WIDTH.min} aria-valuemax={PROPS_WIDTH.max} aria-valuenow={width} data-testid="props-resize"
+      onPointerDown={onPointerDown} onDoubleClick={() => { set(PROPS_WIDTH.initial); savePrefs(); }}
+      onKeyDown={e => {
+        const step = e.key === 'ArrowLeft' ? 16 : e.key === 'ArrowRight' ? -16 : 0;
+        if (step) { e.preventDefault(); set(width + step); savePrefs(); }
+      }} />
+  );
+}
 
 export function PropertiesPanel() {
   const { t } = useT();
@@ -20,6 +46,7 @@ export function PropertiesPanel() {
   }, [layout, selected]);
   return (
     <aside className="side right props" aria-label={t('props.title')} data-testid="props">
+      <ResizeHandle />
       <header className="side-head compact">
         <h2>{t('props.title')}</h2>
         <IconButton icon="panelRight" label={t('panel.hideProps')} onClick={() => togglePanel('right')} testId="hide-props" />

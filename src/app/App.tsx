@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Icon } from '../components/icons';
 import { ConfirmHost } from '../components/ui';
 import { ShopScreen } from '../features/shop/ShopScreen';
-import { movePieces, partOf, rotatePiece, updatePieces } from '../features/nesting/model';
+import { movePieces } from '../features/nesting/model';
+import { rotateSelection } from '../features/geometry/AlignTools';
 import { selectAllOnSheet } from '../features/preview/CanvasToolbar';
 import { ProjectsPage } from '../features/projects/ProjectsPage';
 import { activeLayout, activeProfile, projectStore, redo, setLayout, undo } from '../stores/project-store';
@@ -12,7 +13,7 @@ import { refreshToolpaths } from './actions';
 import { Dialogs, SettingsPage } from './Dialogs';
 import { FilePicker } from './FilePicker';
 import { Home } from './Home';
-import { BottomNav, NavRail } from './NavRail';
+import { BottomNav, Dock } from './Dock';
 import { TopBar, saveNow } from './TopBar';
 import { useT } from './i18n';
 import { Workspace } from './Workspace';
@@ -24,9 +25,10 @@ function onKey(e: KeyboardEvent) {
   if (ctrl && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
   if (ctrl && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
   const ui = uiStore.get();
-  if (e.key === 'Escape') { uiStore.patch({ selected: [], drawer: null, highlightRow: null }); return; }
+  if (e.key === 'Escape') { uiStore.patch({ selected: [], drawer: null, highlightRow: null, layersOpen: false }); return; }
   if (!WORK_SECTIONS.includes(ui.section)) return;
   if (ctrl && e.key.toLowerCase() === 'a') { e.preventDefault(); selectAllOnSheet(); return; }
+  if (!ctrl && !e.altKey && (e.key === 'v' || e.key === 'h')) { uiStore.patch({ tool: e.key === 'v' ? 'select' : 'pan' }); return; }
   const { project } = projectStore.get(), layout = activeLayout(project), keys = ui.selected;
   if (!keys.length || !layout || project.settings.mode !== 'manual' || layout.mode === 'keep') return;
   const steps: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
@@ -36,9 +38,7 @@ function onKey(e: KeyboardEvent) {
     setLayout(movePieces(layout, keys, steps[e.key][0] * k, steps[e.key][1] * k));
     return;
   }
-  if (e.key.toLowerCase() === 'r') {
-    setLayout(updatePieces(layout, keys, p => { const part = partOf(project.designs, p); return part ? rotatePiece(part, p, p.deg + 90) : p; }));
-  }
+  if (e.key.toLowerCase() === 'r') rotateSelection();
 }
 
 /** Unsaved work or a running job gets the browser's leave-page warning. */
@@ -83,7 +83,7 @@ export function App() {
     <div className="app" data-testid="app" data-section={section}>
       <TopBar />
       <div className="shell">
-        <NavRail />
+        <Dock />
         <main className="main" id="main"><Main /></main>
       </div>
       <BottomNav />

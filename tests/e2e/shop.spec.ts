@@ -254,7 +254,7 @@ test('an order links to a cutting project and opens it', async ({ page }) => {
   await page.getByTestId('order-form').getByRole('button', { name: 'Save' }).click();
   await page.getByTestId('open-project').click();
   await expect(page.getByTestId('project-name')).toHaveValue('Linked job');
-  await expect(page.getByTestId('side-panel')).toContainText('SVG Import');
+  await expect(page.getByTestId('side-panel')).toContainText('Designs');
 });
 
 test('quotation and invoice PDFs download', async ({ page }) => {
@@ -279,9 +279,9 @@ test('a backup restores everything and a bad file changes nothing', async ({ pag
   await start(page);
   await addCustomer(page, 'Keep Me', '011');
   await tab(page, 'settings');
-  await page.getByTestId('shop-name').fill('Rieb Snor');
+  await page.getByTestId('shop-name').fill('Aksar Foam Shop');
   await page.getByTestId('shop-save').click();
-  await expect(page.getByTestId('shop-name')).toHaveValue('Rieb Snor');
+  await expect(page.getByTestId('shop-name')).toHaveValue('Aksar Foam Shop');
   const saved = page.waitForEvent('download');
   await page.getByTestId('shop-backup').click();
   const file = (await (await saved).path())!;
@@ -303,7 +303,7 @@ test('a backup restores everything and a bad file changes nothing', async ({ pag
   await expect(page.getByTestId('customers-table')).toContainText('Keep Me');
   await expect(page.getByTestId('customers-table')).not.toContainText('Remove Me');
   await tab(page, 'settings');
-  await expect(page.getByTestId('shop-name')).toHaveValue('Rieb Snor');
+  await expect(page.getByTestId('shop-name')).toHaveValue('Aksar Foam Shop');
 });
 
 test('a second tab sees changes, and a stale save is refused', async ({ page, context }) => {

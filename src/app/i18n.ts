@@ -4,11 +4,13 @@ import type { ImportIssueCode } from '../engines/svg-parser/report';
 import type { ValidationCode } from '../engines/toolpath-engine/validate';
 import { shopEn, shopKm } from './i18n-shop';
 import { uiEn, uiKm } from './i18n-ui';
+import { modalEn, modalKm } from './i18n-modal';
 
 const en = {
   ...shopEn,
   ...uiEn,
-  'app.name': 'Rieb Snor CNC',
+  ...modalEn,
+  'app.name': 'រៀបអក្សរ CNC',
   'app.tagline': 'Foam nesting and Mach3 toolpaths',
   'nav.new': 'New', 'nav.open': 'Open', 'nav.save': 'Save', 'nav.undo': 'Undo', 'nav.redo': 'Redo',
   'nav.help': 'Help', 'nav.settings': 'App settings', 'nav.lang': 'ខ្មែរ', 'nav.dark': 'Dark theme', 'nav.light': 'Light theme',
@@ -123,7 +125,8 @@ export type Key = keyof typeof en;
 const km: Record<Key, string> = {
   ...shopKm,
   ...uiKm,
-  'app.name': 'រៀបស្នោ CNC',
+  ...modalKm,
+  'app.name': 'រៀបអក្សរ CNC',
   'app.tagline': 'រៀបស្នោ និងបង្កើតផ្លូវកាត់សម្រាប់ Mach3',
   'nav.new': 'ថ្មី', 'nav.open': 'បើក', 'nav.save': 'រក្សាទុក', 'nav.undo': 'ថយក្រោយ', 'nav.redo': 'ទៅមុខវិញ',
   'nav.help': 'ជំនួយ', 'nav.settings': 'ការកំណត់កម្មវិធី', 'nav.lang': 'EN', 'nav.dark': 'ផ្ទៃងងឹត', 'nav.light': 'ផ្ទៃភ្លឺ',

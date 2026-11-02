@@ -6,7 +6,7 @@ import { Check, PanelCard, TextField } from '../../components/ui';
 import { hasBlocking } from '../../engines/toolpath-engine/validate';
 import { commit, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
-import { go, toast, uiStore } from '../../stores/ui-store';
+import { closeModal, go, openModal, toast, uiStore } from '../../stores/ui-store';
 import { useIssues } from '../cutting-path/ReviewPanel';
 import { makeCuttingReport } from './pdf-report';
 
@@ -42,7 +42,7 @@ export function ExportPanel() {
             </ul>
             {blocked ? (
               <div className="notice bad">
-                {t('review.blocked')} <button type="button" className="link" onClick={() => go('path')}>{t('nav.section.path')}</button>
+                {t('review.blocked')} <button type="button" className="link" onClick={() => { closeModal(); go('path'); }}>{t('nav.section.path')}</button>
               </div>
             ) : (
               <div className={'confirm-box' + (confirmed ? ' on' : '')}>
@@ -50,6 +50,7 @@ export function ExportPanel() {
               </div>
             )}
             {!blocked && !confirmed && <p className="hint">{t('export.needConfirm')}</p>}
+            <button type="button" className="btn block" onClick={() => openModal('gcode')} data-testid="open-gcode"><Icon name="code" size={16} />{t('gcode.review')}</button>
             <button type="button" className="btn primary block" disabled={!ready} onClick={downloadZip} data-testid="download-zip"><Icon name="download" size={16} />{t('export.all')}</button>
             <ul className="sheet-files">
               {paths.sheets.map((_, i) => (

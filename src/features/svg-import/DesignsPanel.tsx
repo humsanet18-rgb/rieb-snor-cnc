@@ -1,17 +1,22 @@
 import { removeDesign } from '../../app/actions';
 import { tr, useT } from '../../app/i18n';
 import { Check, IconButton } from '../../components/ui';
-import { ask } from '../../stores/confirm-store';
+import { ask, askText } from '../../stores/confirm-store';
 import { needsCorrection } from '../../engines/svg-parser/report';
 import { commit, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
 import { uiStore } from '../../stores/ui-store';
 import type { Design } from '../../types/project';
 
-const setDesign = (id: string, fn: (d: Design) => Design) =>
+export const setDesign = (id: string, fn: (d: Design) => Design) =>
   commit(p => ({ ...p, designs: p.designs.map(d => d.id === id ? fn(d) : d) }));
 
-async function confirmRemove(d: Design) {
+async function rename(d: Design) {
+  const name = await askText({ title: tr('designs.rename'), body: tr('designs.renameBody'), action: tr('designs.renameAction'), input: { label: tr('designs.name'), value: d.name } });
+  if (name && name !== d.name) setDesign(d.id, x => ({ ...x, name }));
+}
+
+export async function confirmRemove(d: Design) {
   if (await ask({ title: tr('confirm.removeDesign'), body: tr('confirm.removeDesign.body', { name: d.name }), action: tr('confirm.remove'), danger: true })) removeDesign(d.id);
 }
 
@@ -28,6 +33,7 @@ export function DesignsPanel() {
             <div className="design-head">
               <i className={`swatch d${i % 6}`} aria-hidden="true" />
               <span className="design-name" title={d.name}>{d.name}</span>
+              <IconButton icon="edit" label={t('designs.renameNamed', { name: d.name })} onClick={() => void rename(d)} />
               <IconButton icon="report" label={t('designs.report')} onClick={() => uiStore.patch({ dialog: { report: d.id } })} />
               <IconButton icon="trash" label={t('designs.remove', { name: d.name })} onClick={() => void confirmRemove(d)} />
             </div>

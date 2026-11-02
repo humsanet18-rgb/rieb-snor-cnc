@@ -3,23 +3,24 @@ import { Check, IconButton } from '../../components/ui';
 import { Icon } from '../../components/icons';
 import { activeLayout, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
-import { savePrefs, togglePanel, uiStore, type Layers } from '../../stores/ui-store';
+import { savePrefs, SNAP_MM, togglePanel, uiStore, type Layers } from '../../stores/ui-store';
 import type { Layout } from '../../types/project';
 
 const LAYERS: (keyof Layers)[] = ['designs', 'toolpath', 'direction', 'bridges', 'rows', 'order', 'start', 'zones', 'issues', 'dims', 'grid'];
 
-export type Tool = 'pan' | 'select';
 
 export function selectAllOnSheet(): void {
   const layout = activeLayout(projectStore.get().project), s = layout?.sheets[Math.min(uiStore.get().sheet, layout.sheets.length - 1)];
   if (s) uiStore.patch({ selected: s.pieces.map(p => p.key) });
 }
 
-export function CanvasToolbar({ layout, index, fit, zoom, scale, tool, setTool }: {
-  layout: Layout | null; index: number; fit: () => void; zoom: (f: number) => void; scale: number; tool: Tool; setTool: (t: Tool) => void;
+export function CanvasToolbar({ layout, index, fit, zoom, scale }: {
+  layout: Layout | null; index: number; fit: () => void; zoom: (f: number) => void; scale: number;
 }) {
   const { t } = useT();
   const layers = useStore(uiStore, s => s.layers);
+  const tool = useStore(uiStore, s => s.tool), snap = useStore(uiStore, s => s.snap), layersOpen = useStore(uiStore, s => s.layersOpen);
+  const setTool = (x: 'pan' | 'select') => uiStore.patch({ tool: x });
   const total = layout?.sheets.length ?? 0;
   const go = (i: number) => uiStore.patch({ sheet: i, selected: [], highlightRow: null, playback: { ...uiStore.get().playback, position: 0, playing: false } });
   return (
@@ -34,6 +35,7 @@ export function CanvasToolbar({ layout, index, fit, zoom, scale, tool, setTool }
         <IconButton icon="hand" label={t('tool.pan')} active={tool === 'pan'} onClick={() => setTool('pan')} testId="tool-pan" />
         <IconButton icon="pointer" label={t('tool.select')} active={tool === 'select'} onClick={() => setTool('select')} testId="tool-select" />
         <IconButton icon="selectAll" label={t('tool.selectAll')} disabled={!total} onClick={selectAllOnSheet} testId="select-all" />
+        <IconButton icon="magnet" label={t('tool.snap', { mm: SNAP_MM })} active={snap} onClick={() => { uiStore.patch({ snap: !snap }); savePrefs(); }} testId="snap" />
       </div>
       <div className="group">
         <IconButton icon="minus" label={t('canvas.zoomOut')} onClick={() => zoom(1 / 1.3)} testId="zoom-out" />
@@ -42,7 +44,7 @@ export function CanvasToolbar({ layout, index, fit, zoom, scale, tool, setTool }
         <IconButton icon="fit" label={t('canvas.fit')} onClick={fit} testId="fit" />
       </div>
       <div className="group">
-        <details className="layers">
+        <details className="layers" open={layersOpen} onToggle={e => { const open = e.currentTarget.open; if (open !== uiStore.get().layersOpen) uiStore.patch({ layersOpen: open }); }}>
           <summary title={t('canvas.layers')} data-testid="layers"><Icon name="layers" /><span className="layers-text">{t('canvas.layers')}</span></summary>
           <div className="layer-menu">
             {LAYERS.map(k => (

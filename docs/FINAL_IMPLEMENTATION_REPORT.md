@@ -4,7 +4,7 @@ Date: 2026-11-01.
 
 ## Outcome
 
-Rieb Snor CNC keeps everything it did before and now has a Shop screen that runs the workshop: customers, orders, the cutting queue, foam stock, payments, reports and backups. The whole app now fits screens from 360 to 1920 px wide.
+រៀបអក្សរ CNC keeps everything it did before and now has a Shop screen that runs the workshop: customers, orders, the cutting queue, foam stock, payments, reports and backups. The whole app now fits screens from 360 to 1920 px wide.
 
 **Deployment status: live on 2026-11-02, with the owner's approval.** Commit `cbb4cb3` was pushed to `main`. Vercel and GitHub Pages both serve the same main script as the local build. The browser tests were run against the Vercel address, and GitHub Pages had a shorter check. The results are in [TEST_RESULTS.md](TEST_RESULTS.md). The Vercel dashboard itself was not opened, because it needs the owner's sign-in.
 

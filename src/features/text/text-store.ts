@@ -5,7 +5,7 @@ import { saveFile } from '../../services/download';
 import { startJob } from '../../services/engine-client';
 import { commit, projectStore } from '../../stores/project-store';
 import { Store } from '../../stores/store';
-import { go, toast } from '../../stores/ui-store';
+import { closeModal, go, toast } from '../../stores/ui-store';
 import { summarise, textDesign, type TextSummary } from './geometry';
 import { BUNDLED_FONTS, findSystemFonts, loadFontFile, referenceRatio, renderText, TextRenderError, type FontChoice, type TextRenderCode, type TextRenderResult } from './render';
 
@@ -128,6 +128,7 @@ export function addToProject(): void {
   commit(p => ({ ...p, designs: [...p.designs, design] }));
   textStore.patch({ addedKey: s.result.key });
   toast(tr('text.added', { name: design.name }));
+  closeModal();
   go('nest');
 }
 

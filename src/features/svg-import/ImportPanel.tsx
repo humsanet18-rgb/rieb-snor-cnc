@@ -1,16 +1,30 @@
-import { useState, type DragEvent } from 'react';
+import { useRef, useState, type DragEvent } from 'react';
 import { addFiles, addSample } from '../../app/actions';
-import { pickSvgFiles } from '../../app/FilePicker';
 import { importIssueText, useT } from '../../app/i18n';
 import { Icon } from '../../components/icons';
 import { useStore } from '../../stores/store';
 import { uiStore } from '../../stores/ui-store';
 
-export function ImportPanel() {
+/** Files the last import could not read, with the reason; shown wherever the operator imported from. */
+export function ImportFailures() {
   const { t, lang } = useT();
-  const [over, setOver] = useState(false);
-  const job = useStore(uiStore, s => s.job);
   const failures = useStore(uiStore, s => s.failures);
+  if (!failures.length) return null;
+  return (
+    <ul className="notices" data-testid="import-failures">
+      {failures.map(f => (
+        <li key={f.name} className="notice bad"><b>{t('import.failed')}: {f.name}</b><br />{importIssueText(lang, f.code)}</li>
+      ))}
+    </ul>
+  );
+}
+
+export function ImportPanel() {
+  const { t } = useT();
+  const [over, setOver] = useState(false);
+  // Its own input: the app-wide one sits outside any open modal, where the browser treats it as inert.
+  const input = useRef<HTMLInputElement>(null);
+  const job = useStore(uiStore, s => s.job);
   const importing = job?.kind === 'import';
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -19,12 +33,14 @@ export function ImportPanel() {
   };
   return (
     <>
-      <button type="button" className={'drop' + (over ? ' over' : '')} disabled={!!job} onClick={pickSvgFiles} data-testid="drop"
+      <button type="button" className={'drop' + (over ? ' over' : '')} disabled={!!job} onClick={() => input.current?.click()} data-testid="drop"
         onDragOver={e => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}>
         <span className="drop-icon"><Icon name="upload" size={24} /></span>
         <b>{t('import.drop')}</b>
         <span>{t('import.pick')}</span>
       </button>
+      <input ref={input} type="file" accept=".svg,image/svg+xml" multiple hidden data-testid="import-file-input"
+        onChange={e => { void addFiles([...(e.target.files ?? [])]); e.target.value = ''; }} />
       <p className="hint">{t('import.hint')}</p>
       {importing && (
         <div className="running" role="status">
@@ -32,13 +48,7 @@ export function ImportPanel() {
           <p className="progress-note">{t('import.progress', { name: job.name ?? '', done: (job.done ?? 0) + 1, total: job.total ?? 1 })}</p>
         </div>
       )}
-      {failures.length > 0 && (
-        <ul className="notices" data-testid="import-failures">
-          {failures.map(f => (
-            <li key={f.name} className="notice bad"><b>{t('import.failed')}: {f.name}</b><br />{importIssueText(lang, f.code)}</li>
-          ))}
-        </ul>
-      )}
+      <ImportFailures />
       <div className="sample-row">
         <span>{t('import.samples')}</span>
         <button type="button" className="link" onClick={() => void addSample('block-letters.svg')}>{t('import.sample.letters')}</button>

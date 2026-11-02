@@ -155,7 +155,8 @@ export function readProfile(v: unknown): MachineProfile {
   const limit = (x: unknown) => (x === null || x === undefined ? null : pos(x, 'profile.travel'));
   return {
     id: str(o.id, 'profile.id'), name: str(o.name, 'profile.name'), feed: num(o.feed, 'profile.feed'), power: num(o.power, 'profile.power'),
-    m5: bool(o.m5, 'profile.m5'), maxX: limit(o.maxX), maxY: limit(o.maxY)
+    m5: bool(o.m5, 'profile.m5'), maxX: limit(o.maxX), maxY: limit(o.maxY),
+    ...(typeof o.verifiedAt === 'string' && !Number.isNaN(Date.parse(o.verifiedAt)) ? { verifiedAt: o.verifiedAt } : {})
   };
 }
 

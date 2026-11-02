@@ -108,7 +108,9 @@ export async function generate(): Promise<void> {
 /** Keeps toolpaths in step with what is on screen; a newer request replaces an older one. */
 let pathJob: RunningJob<unknown> | null = null;
 export async function refreshToolpaths(): Promise<void> {
-  const state = projectStore.get(), layout = activeLayout(state.project), profile = activeProfile(state), { cut } = state.project.settings;
+  const state = projectStore.get(), layout = activeLayout(state.project), { cut } = state.project.settings;
+  // When the profile was last verified does not change a single move.
+  const { verifiedAt: _, ...profile } = activeProfile(state);
   const key = layout ? layout.id + ':' + JSON.stringify([layout.sheets.map(s => s.pieces.map(p => [p.key, p.deg, p.tx, p.ty])), profile, cut]) : null;
   if (key === uiStore.get().toolpathKey) return;
   pathJob?.cancel();

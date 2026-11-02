@@ -58,7 +58,13 @@ const PATHS = {
   ruler: 'M3 17L17 3l4 4L7 21zM7 13l2 2M10 10l2 2M13 7l2 2',
   arrowRight: 'M5 12h14M13 6l6 6-6 6',
   send: 'M4 12l16-8-5 16-3-6z',
-  file: 'M6 3h8l4 4v14H6zM14 3v4h4'
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  pin: 'M9 3h6l-1 7 3 3H7l3-3zM12 13v8',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+  code: 'M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16',
+  target: 'M12 2v5M12 17v5M2 12h5M17 12h5M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+  magnet: 'M5 4h4v8a3 3 0 0 0 6 0V4h4v8a7 7 0 0 1-14 0zM5 8h4M15 8h4',
+  sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4'
 } as const;
 
 export type IconName = keyof typeof PATHS;

@@ -1,13 +1,20 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Icon } from '../components/icons';
 import { Check, Dialog } from '../components/ui';
 import { ReportDialog } from '../features/svg-import/ReportDialog';
+import { ImportModal } from '../features/svg-import/ImportModal';
+import { TextModal } from '../features/text/TextModal';
+import { NestModal } from '../features/nesting/NestModal';
+import { ToolpathModal } from '../features/cutting-path/ToolpathModal';
+import { MachineModal } from '../features/machine-settings/MachineModal';
+import { GcodeModal } from '../features/export/GcodeModal';
+import { ExportModal } from '../features/export/ExportModal';
 import { defaultProfile } from '../features/nesting/model';
 import { clearAll } from '../services/db';
 import { ask } from '../stores/confirm-store';
 import { flushSave, projectStore } from '../stores/project-store';
 import { useStore } from '../stores/store';
-import { savePrefs, toast, uiStore } from '../stores/ui-store';
+import { savePrefs, toast, uiStore, type ToolModal } from '../stores/ui-store';
 import { tr, useT } from './i18n';
 import { createProject } from './actions';
 
@@ -82,9 +89,17 @@ export function SettingsPage() {
   );
 }
 
+const TOOL_MODALS: Record<ToolModal, () => ReactNode> = {
+  import: () => <ImportModal />, text: () => <TextModal />, nest: () => <NestModal />, toolpath: () => <ToolpathModal />,
+  machine: () => <MachineModal />, gcode: () => <GcodeModal />, export: () => <ExportModal />
+};
+
+/** The one modal on screen, if any; opening another replaces it, so modals never stack. */
 export function Dialogs() {
   const dialog = useStore(uiStore, s => s.dialog);
   if (dialog === 'help') return <HelpDialog />;
-  if (dialog) return <ReportDialog designId={dialog.report} />;
-  return null;
+  if (!dialog) return null;
+  // The key remounts the modal when one tool hands over to another, so each starts its own session.
+  if ('tool' in dialog) return <Fragment key={dialog.tool}>{TOOL_MODALS[dialog.tool]()}</Fragment>;
+  return <ReportDialog designId={dialog.report} />;
 }

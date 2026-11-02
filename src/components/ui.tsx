@@ -1,7 +1,5 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { useT } from '../app/i18n';
-import { answer, confirmStore } from '../stores/confirm-store';
-import { useStore } from '../stores/store';
 import { Icon, type IconName } from './icons';
 
 export function IconButton({ icon, label, onClick, disabled, active, testId, size }: { icon: IconName; label: string; onClick: () => void; disabled?: boolean; active?: boolean; testId?: string; size?: number }) {
@@ -102,40 +100,8 @@ export function Check({ label, checked, onChange, testId }: { label: ReactNode; 
   );
 }
 
-export function Dialog({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
-  const { t } = useT();
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const d = ref.current;
-    if (d && !d.open) d.showModal();
-  }, []);
-  return (
-    <dialog ref={ref} className={'dialog' + (wide ? ' wide' : '')} onClose={onClose} onCancel={onClose}>
-      <header>
-        <h2>{title}</h2>
-        <IconButton icon="close" label={t('common.close')} onClick={onClose} />
-      </header>
-      <div className="dialog-body">{children}</div>
-    </dialog>
-  );
-}
-
 export function Stat({ label, value, testId }: { label: string; value: ReactNode; testId?: string }) {
   return <div className="stat"><dt>{label}</dt><dd data-testid={testId}>{value}</dd></div>;
 }
 
-/** The app-wide confirmation dialog; actions open it with `ask()`. */
-export function ConfirmHost() {
-  const { t } = useT();
-  const pending = useStore(confirmStore, s => s);
-  if (!pending) return null;
-  return (
-    <Dialog title={pending.title} onClose={() => answer(false)}>
-      <p>{pending.body}</p>
-      <div className="form-actions">
-        <button type="button" className="btn" onClick={() => answer(false)} data-testid="confirm-no">{t('common.cancel')}</button>
-        <button type="button" className={'btn ' + (pending.danger ? 'danger solid' : 'primary')} onClick={() => answer(true)} data-testid="confirm-yes" autoFocus>{pending.action}</button>
-      </div>
-    </Dialog>
-  );
-}
+export { ConfirmHost, Dialog } from './modal';

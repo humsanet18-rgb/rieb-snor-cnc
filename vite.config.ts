@@ -16,7 +16,7 @@ const contentSecurityPolicy = (): Plugin => ({
   transformIndexHtml: html => html.replace('<!--CSP-->', `<meta http-equiv="Content-Security-Policy" content="${CSP}">`)
 });
 
-const PUBLIC_FILES = ['./', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'samples/block-letters.svg', 'samples/mixed-shapes.svg', 'samples/file-with-problems.svg'];
+const PUBLIC_FILES = ['./', 'manifest.webmanifest', 'favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'samples/block-letters.svg', 'samples/mixed-shapes.svg', 'samples/file-with-problems.svg'];
 
 /** The first visit runs before the worker controls the page, so every file is listed for install time. */
 const serviceWorker = (): Plugin => ({

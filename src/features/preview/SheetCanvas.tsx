@@ -1,15 +1,16 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { addSample } from '../../app/actions';
-import { pickSvgFiles } from '../../app/FilePicker';
-import { useT, validationText } from '../../app/i18n';
+import { useT, validationText, type Key } from '../../app/i18n';
 import { Icon } from '../../components/icons';
 import type { BBox, Part, Point, Polygon } from '../../types/geometry';
 import type { Design, Layout, PlacedPiece } from '../../types/project';
 import { activeLayout, activeProfile, projectStore, setLayout } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
-import { go, uiStore } from '../../stores/ui-store';
+import { go, openModal, SNAP_MM, uiStore } from '../../stores/ui-store';
+import { readiness } from '../machine-settings/calibration';
+import { CanvasMenu } from './CanvasMenu';
 import { itemBox, movePieces, partOf, placeItem } from '../nesting/model';
-import { CanvasToolbar, type Tool } from './CanvasToolbar';
+import { CanvasToolbar } from './CanvasToolbar';
 import { PlaybackBar } from './PlaybackBar';
 import { cumulativeLengths, fitView, pointAlong, RULER, tickStep, ticks, zoomAt, type View } from './view';
 
@@ -24,15 +25,20 @@ const lineD = (P: Polygon) => {
   return d;
 };
 
-const Piece = memo(function Piece({ part, piece, colour, selected, label, showOrder, fontSize, dx, dy, dim }: {
+/** 'bad' lies partly off the foam; 'warn' reaches into the margin the operator asked to keep clear. */
+type PieceState = 'ok' | 'warn' | 'bad';
+
+const Piece = memo(function Piece({ part, piece, colour, selected, label, showOrder, fontSize, dx, dy, dim, state, note }: {
   part: Part; piece: PlacedPiece; colour: number; selected: boolean; label: number; showOrder: boolean; fontSize: number; dx: number; dy: number; dim: boolean;
+  state: PieceState; note: string;
 }) {
   const item = useMemo(() => placeItem(part, piece), [part, piece]);
   const d = useMemo(() => [...item.outers, ...item.holes].map(contourD).join(''), [item]);
   const b = useMemo(() => itemBox(item), [item]);
   return (
-    <g transform={dx || dy ? `translate(${dx} ${dy})` : undefined} className={`piece d${colour}${selected ? ' selected' : ''}${dim ? ' dim' : ''}`} data-key={piece.key}>
+    <g transform={dx || dy ? `translate(${dx} ${dy})` : undefined} className={`piece d${colour}${selected ? ' selected' : ''}${dim ? ' dim' : ''}${state !== 'ok' ? ' ' + state : ''}`} data-key={piece.key} data-state={state}>
       <path d={d} fillRule="evenodd" vectorEffect="non-scaling-stroke" />
+      {state !== 'ok' && <title>{note}</title>}
       {showOrder && label >= 0 && <text x={(b.x0 + b.x1) / 2} y={(b.y0 + b.y1) / 2} fontSize={fontSize} textAnchor="middle" dominantBaseline="central">{label + 1}</text>}
     </g>
   );
@@ -96,7 +102,7 @@ function chevronsD(marks: [number, number, number][], size: number): string {
   return d;
 }
 
-interface Drag { keys: string[]; startX: number; startY: number; dx: number; dy: number; moved: boolean }
+interface Drag { keys: string[]; startX: number; startY: number; dx: number; dy: number; moved: boolean; bx: number; by: number }
 interface Marquee { x0: number; y0: number; x1: number; y1: number; add: boolean }
 
 export function SheetCanvas() {
@@ -107,7 +113,10 @@ export function SheetCanvas() {
   const [view, setView] = useState<View>({ s: 1, x: 40, y: 40 });
   const [drag, setDrag] = useState<Drag | null>(null);
   const [marquee, setMarquee] = useState<Marquee | null>(null);
-  const [tool, setTool] = useState<Tool>('pan');
+  const tool = useStore(uiStore, s => s.tool), snap = useStore(uiStore, s => s.snap);
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const press = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const saveState = useStore(projectStore, s => s.saveState);
   const project = useStore(projectStore, s => s.project);
   const profile = useStore(projectStore, activeProfile);
   const layout = activeLayout(project);
@@ -164,6 +173,13 @@ export function SheetCanvas() {
   const pan = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const pinch = useRef(0);
 
+  /** Opens the context menu at a canvas point; a piece under it joins the selection first, as in drawing programs. */
+  const openMenu = (x: number, y: number, key: string | null) => {
+    if (key && !chosen.has(key)) uiStore.patch({ selected: [key] });
+    setMenu({ x, y });
+  };
+  const closeMenu = useCallback(() => setMenu(null), []);
+
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -175,13 +191,25 @@ export function SheetCanvas() {
     }
     const key = (e.target as Element).closest('[data-key]')?.getAttribute('data-key') ?? null;
     const add = e.shiftKey || e.ctrlKey || e.metaKey;
-    if (key && e.button === 0) {
+    if (menu) setMenu(null);
+    if (e.button !== 0) return;
+    if (e.pointerType === 'touch') {
+      // A held finger opens the context menu, as a right-click does with a mouse.
+      const r = e.currentTarget.getBoundingClientRect(), at = { x: e.clientX - r.left, y: e.clientY - r.top };
+      clearTimeout(press.current);
+      press.current = setTimeout(() => { setDrag(null); pan.current = null; openMenu(at.x, at.y, key); }, 550);
+    }
+    if (key) {
       if (add) { uiStore.patch({ selected: chosen.has(key) ? selected.filter(k => k !== key) : [...selected, key] }); return; }
       const keys = chosen.has(key) ? selected : [key];
       if (!chosen.has(key)) uiStore.patch({ selected: keys });
-      if (manual) { setDrag({ keys, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, moved: false }); return; }
+      if (manual) {
+        const picked = new Set(keys), b = union(sheet?.pieces.flatMap((p, i) => (picked.has(p.key) && boxes[i] ? [boxes[i]!] : [])) ?? []);
+        setDrag({ keys, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, moved: false, bx: b?.x0 ?? 0, by: b?.y0 ?? 0 });
+        return;
+      }
     }
-    if (!key && e.button === 0 && (tool === 'select' || e.shiftKey)) {
+    if (!key && (tool === 'select' || e.shiftKey)) {
       const r = e.currentTarget.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
       setMarquee({ x0: x, y0: y, x1: x, y1: y, add });
       return;
@@ -200,9 +228,12 @@ export function SheetCanvas() {
       pinch.current = d;
       return;
     }
+    if (Math.hypot(e.movementX, e.movementY) > 2) clearTimeout(press.current);
     if (marquee) setMarquee({ ...marquee, x1: px, y1: py });
     else if (drag) {
-      const dx = (e.clientX - drag.startX) / view.s, dy = (e.clientY - drag.startY) / view.s;
+      let dx = (e.clientX - drag.startX) / view.s, dy = (e.clientY - drag.startY) / view.s;
+      // Snapping lands the selection's corner on the SNAP_MM grid rather than moving it in SNAP_MM steps.
+      if (snap) { dx = Math.round((drag.bx + dx) / SNAP_MM) * SNAP_MM - drag.bx; dy = Math.round((drag.by + dy) / SNAP_MM) * SNAP_MM - drag.by; }
       setDrag({ ...drag, dx, dy, moved: drag.moved || Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 3 });
     } else if (pan.current) {
       const dx = e.clientX - pan.current.x, dy = e.clientY - pan.current.y;
@@ -212,6 +243,7 @@ export function SheetCanvas() {
   };
 
   const onPointerUp = (e: ReactPointerEvent<SVGSVGElement>) => {
+    clearTimeout(press.current);
     pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinch.current = 0;
     if (marquee) {
@@ -221,7 +253,7 @@ export function SheetCanvas() {
       uiStore.patch({ selected: marquee.add ? [...new Set([...selected, ...hit])] : hit });
       setMarquee(null);
     } else if (drag) {
-      if (drag.moved && layout) setLayout(movePieces(layout, drag.keys, drag.dx, drag.dy));
+      if (drag.moved && layout && (drag.dx || drag.dy)) setLayout(movePieces(layout, drag.keys, drag.dx, drag.dy));
       setDrag(null);
     } else if (pan.current && !pan.current.moved && (e.target as Element).closest('[data-sheet]')) {
       if (!(e.target as Element).closest('[data-key]') && !(e.shiftKey || e.ctrlKey || e.metaKey)) uiStore.patch({ selected: [] });
@@ -259,6 +291,14 @@ export function SheetCanvas() {
     });
   }, [follow, headX, headY, size, sheetW, sheetH]);
   const colours = useMemo(() => new Map(project.designs.map((d: Design, i) => [d.id, i % 6])), [project.designs]);
+  // The same rules as the validator: off the foam is an error, inside the edge margin a warning (not for keep-position layouts).
+  const margin = layout && layout.mode !== 'keep' ? layout.margin - 0.05 : -Infinity;
+  const states = useMemo(() => boxes.map((b): PieceState => {
+    if (!b) return 'ok';
+    if (b.x0 < 0 || b.y0 < 0 || b.x1 > sheetW || b.y1 > sheetH) return 'bad';
+    return b.x0 < margin || b.y0 < margin || b.x1 > sheetW - margin || b.y1 > sheetH - margin ? 'warn' : 'ok';
+  }), [boxes, sheetW, sheetH, margin]);
+  const flagged = states.filter(x => x !== 'ok').length;
   const px = (n: number) => n / view.s;
 
   const selBox = useMemo(() => {
@@ -273,11 +313,17 @@ export function SheetCanvas() {
 
   return (
     <section className="canvas-area" aria-label={t('canvas.preview', { w: sheetW, h: sheetH })}>
-      <CanvasToolbar layout={layout} index={index} fit={fit} tool={tool} setTool={setTool}
+      <CanvasToolbar layout={layout} index={index} fit={fit}
         zoom={f => setView(v => zoomAt(v, f, size.w / 2, size.h / 2))} scale={view.s} />
-      <div className={'canvas-wrap tool-' + tool} ref={wrap} data-testid="canvas">
+      <div className={'canvas-wrap tool-' + tool} ref={wrap} data-testid="canvas" tabIndex={0} aria-label={t('canvas.focus')}
+        onKeyDown={e => { if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { e.preventDefault(); openMenu(size.w / 2, size.h / 3, null); } }}>
         <svg width={size.w} height={size.h} role="img" aria-label={t('canvas.preview', { w: sheetW, h: sheetH })}
-          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
+          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
+          onContextMenu={e => {
+            e.preventDefault();
+            const r = e.currentTarget.getBoundingClientRect();
+            openMenu(e.clientX - r.left, e.clientY - r.top, (e.target as Element).closest('[data-key]')?.getAttribute('data-key') ?? null);
+          }}>
           <g transform={`translate(${view.x} ${view.y}) scale(${view.s})`}>
             <rect className="foam" data-sheet="1" width={sheetW} height={sheetH} vectorEffect="non-scaling-stroke" data-testid="sheet-rect" />
             {layers.grid && layout && <Grid layout={layout} view={view} />}
@@ -294,7 +340,8 @@ export function SheetCanvas() {
               const part = partOf(project.designs, p), moving = drag?.moved && drag.keys.includes(p.key);
               return part ? (
                 <Piece key={p.key} part={part} piece={p} colour={colours.get(p.designId) ?? 0} selected={chosen.has(p.key)} label={orderOf.get(i) ?? -1}
-                  showOrder={layers.order} fontSize={px(13)} dx={moving ? drag.dx : 0} dy={moving ? drag.dy : 0} dim={!!highlightKeys && !highlightKeys.has(p.key)} />
+                  showOrder={layers.order} fontSize={px(13)} dx={moving ? drag.dx : 0} dy={moving ? drag.dy : 0} dim={!!highlightKeys && !highlightKeys.has(p.key)}
+                  state={states[i]} note={t(states[i] === 'bad' ? 'canvas.offSheet' : 'canvas.inMargin')} />
               ) : null;
             })}
             {layers.toolpath && <path className="wire" d={pathD} vectorEffect="non-scaling-stroke" data-testid="toolpath" />}
@@ -331,11 +378,12 @@ export function SheetCanvas() {
           {marquee && <rect className="marquee" x={Math.min(marquee.x0, marquee.x1)} y={Math.min(marquee.y0, marquee.y1)} width={Math.abs(marquee.x1 - marquee.x0)} height={Math.abs(marquee.y1 - marquee.y0)} />}
           <Rulers view={view} width={size.w} height={size.h} />
         </svg>
+        {menu && <CanvasMenu x={menu.x} y={menu.y} fit={fit} onClose={closeMenu} />}
         {!project.designs.length && <EmptyState />}
         {project.designs.length > 0 && !layout && (
           <div className="canvas-note">
             <span>{t('canvas.noLayout')}</span>
-            <button type="button" className="btn primary" onClick={() => go('nest')}>{t('canvas.goNest')}</button>
+            <button type="button" className="btn primary" onClick={() => { go('nest'); openModal('nest'); }}>{t('canvas.goNest')}</button>
           </div>
         )}
       </div>
@@ -345,11 +393,16 @@ export function SheetCanvas() {
         <span className="sb">{t('status.zoom')} <b>{Math.round(view.s * 100)}%</b></span>
         <span className="sb hide-sm">{t('status.sheetSize')} <b>{sheetW} × {sheetH} mm</b></span>
         <span className="sb" data-testid="status-selection">{selected.length ? t('status.selection', { n: selected.length }) : t('status.none')}</span>
+        {flagged > 0 && <span className="sb path-state bad" data-testid="status-flagged"><Icon name="warn" size={14} />{t('status.flagged', { n: flagged })}</span>}
         <span className={'sb path-state ' + (busy ? 'busy' : !paths ? '' : errors ? 'bad' : 'ok')} data-testid="status-path">
           <Icon name={busy ? 'history' : !paths ? 'info' : errors ? 'error' : 'ok'} size={14} />
           {busy ? t('status.busy') : !paths ? t('status.noPath') : errors ? t('status.errors', { n: errors }) : t('status.ready')}
         </span>
-        <span className="sb hide-sm sb-end" title={t('status.profile')}><Icon name="machine" size={14} />{profile.name} · F{profile.feed} S{profile.power}</span>
+        <span className={'sb save-sb ' + saveState} data-testid="status-save"><Icon name={saveState === 'error' ? 'warn' : saveState === 'saving' ? 'history' : 'ok'} size={14} />
+          {t(saveState === 'saved' ? 'status.saved' : saveState === 'saving' ? 'status.unsaved' : 'save.error')}</span>
+        <button type="button" className={'sb hide-sm sb-end machine-sb ' + readiness(profile)} title={t('status.profile')} onClick={() => openModal('machine')} data-testid="status-machine">
+          <Icon name="machine" size={14} />{profile.name} · F{profile.feed} S{profile.power} · {t(`calib.short.${readiness(profile)}` as Key)}
+        </button>
       </footer>
     </section>
   );
@@ -363,8 +416,8 @@ function EmptyState() {
       <h2>{t('canvas.empty.title')}</h2>
       <p>{t('canvas.empty.body')}</p>
       <div className="btn-row center">
-        <button type="button" className="btn primary" onClick={pickSvgFiles}><Icon name="upload" size={16} />{t('canvas.empty.import')}</button>
-        <button type="button" className="btn" onClick={() => go('text')}><Icon name="text" size={16} />{t('canvas.empty.text')}</button>
+        <button type="button" className="btn primary" onClick={() => openModal('import')} data-testid="empty-import"><Icon name="upload" size={16} />{t('canvas.empty.import')}</button>
+        <button type="button" className="btn" onClick={() => openModal('text')}><Icon name="text" size={16} />{t('canvas.empty.text')}</button>
         <button type="button" className="btn" onClick={() => void addSample('block-letters.svg')}>{t('canvas.empty.sample')}</button>
       </div>
     </div>

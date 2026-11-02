@@ -1,4 +1,4 @@
-# រៀបស្នោ CNC
+# រៀបអក្សរ CNC
 
 Foam nesting and Mach3 toolpath generator for hot-wire CNC shops. It runs entirely in the browser, in Khmer and English. Files stay on your device.
 

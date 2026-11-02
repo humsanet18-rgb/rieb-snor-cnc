@@ -55,6 +55,8 @@ export interface MachineProfile {
   /** Machine travel in mm; null means not configured and not checked. */
   maxX: number | null;
   maxY: number | null;
+  /** When the operator last confirmed these values on the real machine; any change to them clears it. */
+  verifiedAt?: string | null;
 }
 
 export interface PlacedPiece { key: string; designId: string; partIndex: number; copy: number; deg: number; tx: number; ty: number }

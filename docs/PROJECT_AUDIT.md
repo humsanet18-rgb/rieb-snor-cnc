@@ -4,7 +4,7 @@ Audit date: 2026-11-01. It covers the repository, the Vercel and GitHub Pages si
 
 ## What this project actually is
 
-Rieb Snor CNC is a browser-only tool for a hot-wire foam cutting workshop. It turns CorelDRAW SVG files into nested layouts and Mach3 TAP files. Before this audit it had no record of customers, orders, stock or money.
+រៀបអក្សរ CNC is a browser-only tool for a hot-wire foam cutting workshop. It turns CorelDRAW SVG files into nested layouts and Mach3 TAP files. Before this audit it had no record of customers, orders, stock or money.
 
 | Item | Finding |
 | --- | --- |

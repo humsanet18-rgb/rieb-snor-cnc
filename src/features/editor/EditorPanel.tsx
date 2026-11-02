@@ -15,7 +15,7 @@ import { nodeAt, pieceVisits } from './motion';
 const ROW = 22;
 
 /** Draws only the lines in view, because a sheet can have tens of thousands of them. */
-function GCodeList({ lines, current, pick }: { lines: string[]; current: number; pick: (line: number) => void }) {
+export function GCodeList({ lines, current, pick, tall, testId = 'gcode' }: { lines: string[]; current: number; pick: (line: number) => void; tall?: boolean; testId?: string }) {
   const { t } = useT();
   const box = useRef<HTMLDivElement>(null);
   const [top, setTop] = useState(0);
@@ -25,15 +25,15 @@ function GCodeList({ lines, current, pick }: { lines: string[]; current: number;
     const y = current * ROW;
     if (y < el.scrollTop || y + ROW > el.scrollTop + el.clientHeight) el.scrollTop = Math.max(0, y - el.clientHeight / 2);
   }, [current]);
-  const first = Math.max(0, Math.floor(top / ROW) - 4), shown = lines.slice(first, first + 32);
+  const first = Math.max(0, Math.floor(top / ROW) - 4), shown = lines.slice(first, first + (tall ? 80 : 32));
   return (
-    <div className="gcode" ref={box} role="group" data-testid="gcode" aria-label={t('editor.gcode')} onScroll={e => setTop(e.currentTarget.scrollTop)}>
+    <div className={'gcode' + (tall ? ' tall' : '')} ref={box} role="group" data-testid={testId} aria-label={t('editor.gcode')} onScroll={e => setTop(e.currentTarget.scrollTop)}>
       <div style={{ height: lines.length * ROW }}>
         {shown.map((text, k) => {
           const line = first + k;
           return (
             <button type="button" key={line} className={'gline' + (line === current ? ' on' : '')} style={{ top: line * ROW, height: ROW }}
-              aria-current={line === current ? 'true' : undefined} data-testid={line === current ? 'gcode-current' : undefined} onClick={() => pick(line)}>
+              aria-current={line === current ? 'true' : undefined} data-testid={line === current ? `${testId}-current` : undefined} onClick={() => pick(line)}>
               <i>{line + 1}</i>{text}
             </button>
           );

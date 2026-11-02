@@ -5,11 +5,15 @@ import { Store } from './store';
 
 export type Lang = 'km' | 'en';
 export type Theme = 'light' | 'dark';
-export type Dialog = 'help' | { report: string } | null;
+/** Workflows that open over the workspace. Only one is ever open; they never stack. */
+export type ToolModal = 'import' | 'text' | 'nest' | 'toolpath' | 'machine' | 'gcode' | 'export';
+export type Dialog = 'help' | { report: string } | { tool: ToolModal } | null;
 
 /** Every screen in the app. The work sections share the sheet canvas; the others are full pages. */
-export type Section = 'home' | 'import' | 'text' | 'nest' | 'machine' | 'path' | 'export' | 'editor' | 'projects' | 'shop' | 'settings';
-export const WORK_SECTIONS: Section[] = ['import', 'nest', 'machine', 'path', 'export', 'editor'];
+export type Section = 'home' | 'import' | 'nest' | 'path' | 'editor' | 'projects' | 'shop' | 'settings';
+export const WORK_SECTIONS: Section[] = ['import', 'nest', 'path', 'editor'];
+
+export type CanvasTool = 'pan' | 'select';
 
 export interface Layers {
   designs: boolean; toolpath: boolean; direction: boolean; bridges: boolean; zones: boolean; start: boolean;
@@ -57,10 +61,22 @@ export interface UiState {
   flash: Point | null;
   /** The first-run guide on the home screen has been dismissed. */
   guided: boolean;
+  tool: CanvasTool;
+  /** The canvas layer menu is open. */
+  layersOpen: boolean;
+  /** Dragged pieces land on whole multiples of SNAP_MM. */
+  snap: boolean;
+  /** Tool ids pinned to the top of the dock. */
+  pinned: string[];
+  /** Width of the docked properties panel in px. */
+  propsWidth: number;
 }
 
+export const SNAP_MM = 5;
+export const PROPS_WIDTH = { min: 240, max: 480, initial: 288 };
+
 const PREFS = 'rieb-snor.prefs';
-type Prefs = Partial<Pick<UiState, 'lang' | 'theme' | 'layers' | 'panels' | 'guided'>>;
+type Prefs = Partial<Pick<UiState, 'lang' | 'theme' | 'layers' | 'panels' | 'guided' | 'snap' | 'pinned' | 'propsWidth'>>;
 function readPrefs(): Prefs {
   try { return JSON.parse(localStorage.getItem(PREFS) || '{}'); } catch { return {}; }
 }
@@ -74,17 +90,30 @@ export const uiStore = new Store<UiState>({
   layers: { designs: true, toolpath: true, direction: true, bridges: true, zones: true, start: true, grid: true, order: false, rows: true, issues: true, dims: true, ...prefs.layers },
   job: null, toolpaths: null, toolpathKey: null, toolpathBusy: false, toast: null, failures: [], confirmed: false,
   playback: { position: 0, playing: false, speed: 10 }, shopTab: 'dashboard', shopOrder: null, follow: false, flash: null,
-  guided: prefs.guided === true
+  guided: prefs.guided === true, tool: 'pan', layersOpen: false, snap: prefs.snap === true,
+  pinned: Array.isArray(prefs.pinned) ? prefs.pinned.filter(x => typeof x === 'string').slice(0, 12) : [],
+  propsWidth: typeof prefs.propsWidth === 'number' ? Math.min(PROPS_WIDTH.max, Math.max(PROPS_WIDTH.min, prefs.propsWidth)) : PROPS_WIDTH.initial
 });
 
 export function savePrefs(): void {
-  const { lang, theme, layers, panels, guided } = uiStore.get();
-  try { localStorage.setItem(PREFS, JSON.stringify({ lang, theme, layers, panels, guided })); } catch { /* preferences just reset next time */ }
+  const { lang, theme, layers, panels, guided, snap, pinned, propsWidth } = uiStore.get();
+  try { localStorage.setItem(PREFS, JSON.stringify({ lang, theme, layers, panels, guided, snap, pinned, propsWidth })); } catch { /* preferences just reset next time */ }
 }
 
 /** Opens a screen; on narrow screens the work panel slides up so its controls are at hand. */
 export function go(section: Section): void {
-  uiStore.patch({ section, drawer: WORK_SECTIONS.includes(section) || section === 'text' ? 'left' : null, highlightRow: null });
+  uiStore.patch({ section, drawer: WORK_SECTIONS.includes(section) ? 'left' : null, highlightRow: null });
+}
+
+export const modalOf = (d: Dialog): ToolModal | null => (d && typeof d === 'object' && 'tool' in d ? d.tool : null);
+
+/** Opens a workflow over the workspace. A modal that is already open closes itself first, so they never nest. */
+export function openModal(tool: ToolModal): void {
+  uiStore.patch({ dialog: { tool }, drawer: null });
+}
+
+export function closeModal(): void {
+  uiStore.patch({ dialog: null });
 }
 
 /** Widths below which a panel floats over the canvas instead of sitting beside it; they match the stylesheet. */

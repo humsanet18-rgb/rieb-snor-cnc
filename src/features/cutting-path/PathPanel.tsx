@@ -1,13 +1,13 @@
 import { refreshToolpaths } from '../../app/actions';
-import { formatDuration, useT } from '../../app/i18n';
+import { formatDuration, useT, type Key } from '../../app/i18n';
 import { Icon } from '../../components/icons';
-import { Check, PanelCard } from '../../components/ui';
-import { CutFields } from './CutFields';
+import { PanelCard, Stat } from '../../components/ui';
 import { ReviewPanel } from './ReviewPanel';
 import { RowList } from './RowList';
 import { activeProfile, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
-import { go, savePrefs, uiStore } from '../../stores/ui-store';
+import { go, openModal, uiStore } from '../../stores/ui-store';
+import { readiness } from '../machine-settings/calibration';
 
 function PathTable() {
   const { t, lang } = useT();
@@ -42,21 +42,34 @@ function PathTable() {
   );
 }
 
-export function PathPanel() {
+/** What the path is set to, with the button into the full toolpath settings. */
+function PathSummary() {
   const { t } = useT();
-  const showing = useStore(uiStore, s => s.layers.toolpath);
+  const cut = useStore(projectStore, s => s.project.settings.cut);
+  const profile = useStore(projectStore, activeProfile);
+  const ready = readiness(profile);
   return (
     <>
-      <PanelCard title={t('card.order')} icon="path" tip={t('tip.order')}>
-        <CutFields />
-        <Check label={t('path.showOnCanvas')} checked={showing} testId="show-paths"
-          onChange={toolpath => { uiStore.patch({ layers: { ...uiStore.get().layers, toolpath } }); savePrefs(); }} />
-      </PanelCard>
+      <dl className="stats">
+        <Stat label={t('cut.order')} value={t(`cut.order.${cut.order}`)} />
+        <Stat label={t('machine.profile')} value={profile.name || '—'} />
+      </dl>
+      <p className={'notice ' + (ready === 'verified' ? 'ok' : 'warn')}>{t(`calib.ready.${ready}` as Key)}</p>
+      <button type="button" className="btn primary block" onClick={() => openModal('toolpath')} data-testid="open-toolpath">
+        <Icon name="sliders" size={16} />{t('toolpath.open')}
+      </button>
+    </>
+  );
+}
+
+export function PathPanel() {
+  const { t } = useT();
+  return (
+    <>
+      <PanelCard title={t('toolpath.title')} icon="path"><PathSummary /></PanelCard>
       <PanelCard title={t('card.sequence')} icon="layers" testId="sequence-card"><RowList /></PanelCard>
       <PanelCard title={t('card.paths')} icon="ruler"><PathTable /></PanelCard>
       <PanelCard title={t('card.review')} icon="ok" testId="review-card"><ReviewPanel /></PanelCard>
-      <PanelCard title={t('card.moves')} icon="info"><p className="hint">{t('moves.body')}</p></PanelCard>
-      <PanelCard title={t('card.kerf')} icon="info"><p className="hint">{t('kerf.body')}</p></PanelCard>
     </>
   );
 }

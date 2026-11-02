@@ -2,10 +2,10 @@
 export const uiEn = {
   'nav.main': 'Main navigation', 'nav.menu': 'Menu', 'nav.more': 'More',
   'nav.group.design': 'Design', 'nav.group.produce': 'Production', 'nav.group.manage': 'Manage',
-  'nav.section.home': 'Home', 'nav.section.import': 'SVG Import', 'nav.section.text': 'Khmer Text', 'nav.section.nest': 'Nesting & Layout',
-  'nav.section.machine': 'Machine', 'nav.section.path': 'Cutting Path', 'nav.section.export': 'G-code & Export', 'nav.section.editor': 'Editor',
+  'nav.section.home': 'Home', 'nav.section.import': 'Designs', 'nav.section.text': 'Khmer Text', 'nav.section.nest': 'Nesting & Layout',
+  'nav.section.machine': 'Machine', 'nav.section.path': 'Cutting Path', 'nav.section.export': 'G-code & Export', 'nav.section.editor': 'Simulation',
   'nav.section.projects': 'Projects', 'nav.section.shop': 'Workshop', 'nav.section.settings': 'Settings',
-  'nav.short.import': 'Import', 'nav.short.nest': 'Nest', 'nav.short.path': 'Path',
+  'nav.short.import': 'Designs', 'nav.short.nest': 'Nest', 'nav.short.path': 'Path',
   'top.more': 'More actions',
   'panel.hide': 'Hide panel', 'panel.show': 'Show panel', 'panel.hideProps': 'Hide properties', 'panel.showProps': 'Show properties', 'panel.props': 'Properties', 'panel.controls': 'Controls',
 
@@ -33,7 +33,7 @@ export const uiEn = {
   'tip.corners': 'Areas where the foam is clamped. No piece and no wire path may enter them.',
   'more.info': 'More information',
 
-  'home.title': 'Welcome to Rieb Snor CNC',
+  'home.title': 'Welcome to រៀបអក្សរ CNC',
   'home.sub': 'Nest foam letters, join them into one continuous hot-wire path, and export Mach3 TAP files. Everything runs in your browser.',
   'home.start': 'Start a job', 'home.importSvg': 'Import SVG files', 'home.importSvg.sub': 'From CorelDRAW, converted to curves',
   'home.typeText': 'Type Khmer text', 'home.typeText.sub': 'Turn text into letter outlines', 'home.sample': 'Try a sample', 'home.sample.sub': 'Block letters, ready to nest',
@@ -115,10 +115,10 @@ export type UiKey = keyof typeof uiEn;
 export const uiKm: Record<UiKey, string> = {
   'nav.main': 'ម៉ឺនុយមេ', 'nav.menu': 'ម៉ឺនុយ', 'nav.more': 'ច្រើនទៀត',
   'nav.group.design': 'រចនា', 'nav.group.produce': 'ផលិតកម្ម', 'nav.group.manage': 'គ្រប់គ្រង',
-  'nav.section.home': 'ទំព័រដើម', 'nav.section.import': 'នាំចូល SVG', 'nav.section.text': 'អក្សរខ្មែរ', 'nav.section.nest': 'រៀបស្នោ និងប្លង់',
-  'nav.section.machine': 'ម៉ាស៊ីន', 'nav.section.path': 'ផ្លូវកាត់', 'nav.section.export': 'G-code និងនាំចេញ', 'nav.section.editor': 'កែសម្រួល',
+  'nav.section.home': 'ទំព័រដើម', 'nav.section.import': 'រូបរចនា', 'nav.section.text': 'អក្សរខ្មែរ', 'nav.section.nest': 'រៀបស្នោ និងប្លង់',
+  'nav.section.machine': 'ម៉ាស៊ីន', 'nav.section.path': 'ផ្លូវកាត់', 'nav.section.export': 'G-code និងនាំចេញ', 'nav.section.editor': 'ក្លែងការកាត់',
   'nav.section.projects': 'គម្រោង', 'nav.section.shop': 'ហាង', 'nav.section.settings': 'ការកំណត់',
-  'nav.short.import': 'នាំចូល', 'nav.short.nest': 'រៀប', 'nav.short.path': 'ផ្លូវកាត់',
+  'nav.short.import': 'រូប', 'nav.short.nest': 'រៀប', 'nav.short.path': 'ផ្លូវកាត់',
   'top.more': 'សកម្មភាពផ្សេងទៀត',
   'panel.hide': 'លាក់ផ្ទាំង', 'panel.show': 'បង្ហាញផ្ទាំង', 'panel.hideProps': 'លាក់លក្ខណៈ', 'panel.showProps': 'បង្ហាញលក្ខណៈ', 'panel.props': 'លក្ខណៈ', 'panel.controls': 'ការកំណត់',
 
@@ -146,7 +146,7 @@ export const uiKm: Record<UiKey, string> = {
   'tip.corners': 'តំបន់ដែលស្នោត្រូវបានគៀប។ គ្មានដុំស្នោ និងផ្លូវលួសណាចូលបានទេ។',
   'more.info': 'ព័ត៌មានបន្ថែម',
 
-  'home.title': 'សូមស្វាគមន៍មកកាន់ រៀបស្នោ CNC',
+  'home.title': 'សូមស្វាគមន៍មកកាន់ រៀបអក្សរ CNC',
   'home.sub': 'រៀបអក្សរស្នោ ភ្ជាប់ពួកវាជាផ្លូវលួសក្ដៅតែមួយបន្ត ហើយនាំចេញឯកសារ TAP សម្រាប់ Mach3។ អ្វីៗទាំងអស់ដំណើរការក្នុងកម្មវិធីរុករករបស់អ្នក។',
   'home.start': 'ចាប់ផ្តើមការងារ', 'home.importSvg': 'នាំចូលឯកសារ SVG', 'home.importSvg.sub': 'ពី CorelDRAW ដែល Convert to Curves រួច',
   'home.typeText': 'វាយអក្សរខ្មែរ', 'home.typeText.sub': 'បំលែងអក្សរទៅជាខ្សែរូបអក្សរ', 'home.sample': 'សាកល្បងឧទាហរណ៍', 'home.sample.sub': 'អក្សរប្លុក រួចរាល់សម្រាប់រៀប',

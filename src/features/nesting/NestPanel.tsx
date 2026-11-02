@@ -1,6 +1,6 @@
 import { cancelJob, generate } from '../../app/actions';
 import { tr, useT } from '../../app/i18n';
-import { Check, IconButton, NumberField, PanelCard, SelectField } from '../../components/ui';
+import { Check, IconButton, NumberField, SelectField } from '../../components/ui';
 import { ask } from '../../stores/confirm-store';
 import { activeLayout, commit, projectStore } from '../../stores/project-store';
 import { useStore } from '../../stores/store';
@@ -24,7 +24,8 @@ export function layoutOutdated(p: Project, l: Layout | null): boolean {
   return count !== expandPieces(p.designs).length;
 }
 
-export function NestPanel() {
+/** Mode, arrangement and search settings, with the button that runs the nesting. */
+export function ArrangeControls() {
   const { t } = useT();
   const project = useStore(projectStore, s => s.project);
   const job = useStore(uiStore, s => s.job);
@@ -34,7 +35,6 @@ export function NestPanel() {
   const setRows = (part: Partial<RowSettings>) => setSettings(x => ({ ...x, rows: { ...x.rows, ...part } }));
   return (
     <>
-    <PanelCard title={t('card.arrange')} icon="nest">
       <div className="segmented" role="radiogroup" aria-label={t('nest.mode')}>
         {(['auto', 'keep', 'manual'] as NestMode[]).map(m => (
           <label key={m} className={s.mode === m ? 'on' : ''}>
@@ -99,22 +99,26 @@ export function NestPanel() {
       )}
       {layoutOutdated(project, layout) && <p className="notice warn" data-testid="stale">{t('nest.stale')}</p>}
       {layout && layout.unplaced.length > 0 && <p className="notice bad" data-testid="unplaced">{t('nest.unplaced', { n: layout.unplaced.length })}</p>}
-    </PanelCard>
-    {project.layouts.length > 0 && <PanelCard title={t('card.layouts')} icon="layers"><LayoutTable project={project} /></PanelCard>}
     </>
   );
 }
 
-function LayoutTable({ project }: { project: Project }) {
+export const selectLayout = (id: string): void => {
+  commit(p => ({ ...p, activeLayoutId: id }));
+  uiStore.patch({ sheet: 0, selected: [], highlightRow: null });
+};
+
+export async function removeLayout(id: string, n: number): Promise<void> {
+  if (!await ask({ title: tr('confirm.deleteLayout'), body: tr('confirm.deleteLayout.body', { n }), action: tr('confirm.delete'), danger: true })) return;
+  commit(p => {
+    const layouts = p.layouts.filter(l => l.id !== id);
+    return { ...p, layouts, activeLayoutId: p.activeLayoutId === id ? layouts[layouts.length - 1]?.id ?? null : p.activeLayoutId };
+  });
+}
+
+export function LayoutTable({ project }: { project: Project }) {
   const { t } = useT();
-  const select = (id: string) => { commit(p => ({ ...p, activeLayoutId: id })); uiStore.patch({ sheet: 0, selected: [], highlightRow: null }); };
-  const remove = async (id: string, n: number) => {
-    if (!await ask({ title: tr('confirm.deleteLayout'), body: tr('confirm.deleteLayout.body', { n }), action: tr('confirm.delete'), danger: true })) return;
-    commit(p => {
-      const layouts = p.layouts.filter(l => l.id !== id);
-      return { ...p, layouts, activeLayoutId: p.activeLayoutId === id ? layouts[layouts.length - 1]?.id ?? null : p.activeLayoutId };
-    });
-  };
+  const select = selectLayout, remove = removeLayout;
   return (
     <>
       <table className="compare" data-testid="layouts">

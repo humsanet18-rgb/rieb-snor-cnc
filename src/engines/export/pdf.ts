@@ -1,5 +1,14 @@
 export interface PdfPage { jpeg: Uint8Array; pixelW: number; pixelH: number }
 
+const PRODUCER = 'រៀបអក្សរ CNC';
+
+/** A PDF text string in UTF-16BE with a byte-order mark, the form readers expect for non-Latin text. */
+export function utf16Hex(s: string): string {
+  let hex = 'FEFF';
+  for (let i = 0; i < s.length; i++) hex += s.charCodeAt(i).toString(16).toUpperCase().padStart(4, '0');
+  return `<${hex}>`;
+}
+
 /**
  * Minimal PDF writer: one full-page JPEG per A4 page. The pages are drawn by the browser,
  * which is what shapes Khmer script correctly; embedding fonts here would need a shaping engine.
@@ -17,7 +26,7 @@ export function writePdf(pages: PdfPage[], title: string): Uint8Array {
   const pageId = (i: number) => 4 + i * 3;
   obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
   obj(2, `<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_, i) => `${pageId(i)} 0 R`).join(' ')}] >>`);
-  obj(3, `<< /Title (${ascii}) /Producer (Rieb Snor CNC) >>`);
+  obj(3, `<< /Title (${ascii}) /Producer ${utf16Hex(PRODUCER)} >>`);
   pages.forEach((p, i) => {
     const page = pageId(i), content = page + 1, image = page + 2;
     obj(page, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 ${image} 0 R >> >> /Contents ${content} 0 R >>`);

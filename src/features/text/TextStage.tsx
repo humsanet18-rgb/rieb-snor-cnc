@@ -1,9 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../../app/i18n';
 import { Icon } from '../../components/icons';
-import { IconButton } from '../../components/ui';
 import { useStore } from '../../stores/store';
-import { togglePanel } from '../../stores/ui-store';
 import type { Polygon } from '../../types/geometry';
 import { SMALL_PIECE_MM } from './geometry';
 import { fontOf, inputKey, textStore } from './text-store';
@@ -48,7 +46,6 @@ export function TextStage() {
     <section className="canvas-area text-stage" aria-label={traced ? t('text.stage.curves') : t('text.stage.preview')} data-testid="text-stage">
       <div className="canvas-bar">
         <div className="group">
-          <span className="tb-left"><IconButton icon="panelLeft" label={t('panel.show')} onClick={() => togglePanel('left')} testId="show-panel" /></span>
           <span className={'stage-mode' + (traced ? ' ok' : '')}><Icon name={traced ? 'path' : 'text'} size={16} />{traced ? t('text.stage.curves') : t('text.stage.preview')}</span>
         </div>
         {box && (

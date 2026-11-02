@@ -5,11 +5,11 @@ import { openProject } from '../features/projects/ProjectsPage';
 import { listProjects, type ProjectSummary } from '../services/db';
 import { activeLayout, flushSave, projectStore } from '../stores/project-store';
 import { useStore } from '../stores/store';
-import { go, savePrefs, uiStore } from '../stores/ui-store';
+import { go, openModal, savePrefs, uiStore } from '../stores/ui-store';
 import { addSample } from './actions';
-import { pickSvgFiles } from './FilePicker';
 import { useT, type Key } from './i18n';
 import { FLOW, useFlow } from './sections';
+import { runTool, toolForFlow } from './tools';
 
 function Action({ icon, title, sub, onClick, testId, primary }: { icon: IconName; title: string; sub: string; onClick: () => void; testId: string; primary?: boolean }) {
   return (
@@ -43,8 +43,8 @@ export function Home() {
       <section aria-labelledby="start-head">
         <h2 id="start-head" className="page-sub">{t('home.start')}</h2>
         <div className="action-grid">
-          <Action icon="upload" title={t('home.importSvg')} sub={t('home.importSvg.sub')} onClick={pickSvgFiles} testId="home-import" primary />
-          <Action icon="text" title={t('home.typeText')} sub={t('home.typeText.sub')} onClick={() => go('text')} testId="home-text" />
+          <Action icon="upload" title={t('home.importSvg')} sub={t('home.importSvg.sub')} onClick={() => openModal('import')} testId="home-import" primary />
+          <Action icon="text" title={t('home.typeText')} sub={t('home.typeText.sub')} onClick={() => openModal('text')} testId="home-text" />
           <Action icon="file" title={t('home.sample')} sub={t('home.sample.sub')} onClick={() => void addSample('block-letters.svg')} testId="home-sample" />
           <Action icon="open" title={t('home.open')} sub={t('home.open.sub')} onClick={() => go('projects')} testId="home-open" />
         </div>
@@ -54,7 +54,7 @@ export function Home() {
         <section className="panel-box" aria-labelledby="current-head">
           <div className="box-head">
             <h2 id="current-head">{t('home.current')}</h2>
-            <button type="button" className="btn primary" onClick={() => go(firstOpen)} data-testid="home-continue">{t('home.continue')}<Icon name="arrowRight" size={16} /></button>
+            <button type="button" className="btn primary" onClick={() => runTool(toolForFlow(firstOpen).id)} data-testid="home-continue">{t('home.continue')}<Icon name="arrowRight" size={16} /></button>
           </div>
           <p className="project-title">{project.name}</p>
           <p className="hint">{t('home.stats', { designs: project.designs.length, pieces, sheets: stats?.sheets ?? 0 })}</p>
@@ -62,7 +62,7 @@ export function Home() {
           <ol className="flow-list" data-testid="flow">
             {FLOW.map((s, i) => (
               <li key={s} className={flow[s]}>
-                <button type="button" onClick={() => go(s)}>
+                <button type="button" onClick={() => runTool(toolForFlow(s).id)}>
                   <span className="flow-num">{flow[s] === 'done' ? <Icon name="check" size={14} /> : flow[s] === 'errors' || flow[s] === 'stale' ? <Icon name="warn" size={14} /> : i + 1}</span>
                   <span className="flow-name">{t(`flow.${s}` as Key)}</span>
                   <span className="flow-state">{t(`flow.${flow[s]}` as Key)}</span>
